@@ -143,7 +143,8 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/FreeRTOS/include/mpu_wrappers.h ../src/FreeRTOS/include/task.h \
  ../src/FreeRTOS/include/list.h ../src/FreeRTOS/include/timers.h \
  ../src/FreeRTOS/include/task.h ../src/FreeRTOS/include/queue.h \
- ../src/FreeRTOS/include/semphr.h ../src/FreeRTOS/include/queue.h
+ ../src/FreeRTOS/include/semphr.h ../src/FreeRTOS/include/queue.h \
+ ../src/mytasks.h
 
 ../src/asf.h:
 
@@ -456,3 +457,5 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/FreeRTOS/include/semphr.h:
 
 ../src/FreeRTOS/include/queue.h:
+
+../src/mytasks.h:

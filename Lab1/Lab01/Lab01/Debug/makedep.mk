@@ -4,6 +4,8 @@
 
 src\FreeRTOS\list.c
 
+src\FreeRTOS\portable\GCC\ARM_CM4F\port.c
+
 src\FreeRTOS\portable\MemMang\heap_5.c
 
 src\FreeRTOS\queue.c
@@ -11,6 +13,8 @@ src\FreeRTOS\queue.c
 src\FreeRTOS\tasks.c
 
 src\FreeRTOS\timers.c
+
+src\mytasks.c
 
 src\ASF\common\services\clock\sam4e\sysclk.c
 

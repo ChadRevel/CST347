@@ -513,6 +513,12 @@
     <Compile Include="src\FreeRTOS\list.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\FreeRTOS\portable\GCC\ARM_CM4F\port.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\FreeRTOS\portable\GCC\ARM_CM4F\portmacro.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\FreeRTOS\portable\MemMang\heap_5.c">
       <SubType>compile</SubType>
     </Compile>
@@ -523,6 +529,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FreeRTOS\timers.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\mytasks.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\mytasks.c">
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\asf.h">

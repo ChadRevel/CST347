@@ -7,6 +7,7 @@
 #include "timers.h"
 #include "queue.h"
 #include "semphr.h"
+#include "mytasks.h"
 
 // My Includes
 
@@ -30,10 +31,19 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 // Used to place the heap
 extern char _estack;
 
+
 int main (void)
 {
 	// Initialize The Board
 	prvMiscInitialisation();
+	
+	// Create a Task to Handle Button Press and Light LED
+	xTaskCreate(myButtonTask,                       // Function Called by task
+	"My Button Task",                        // Task Name
+	configMINIMAL_STACK_SIZE,                // Task Stack Size
+	NULL,                                    // Any Paramaters Passed to Task
+	1,                                       // Task Priority
+	NULL);                                   // Place to store Task Handle
 	
 	// Start The Scheduler
 	vTaskStartScheduler();
@@ -108,3 +118,4 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
 
        for( ;; );
 }
+
