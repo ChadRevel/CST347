@@ -10,6 +10,8 @@
 // FreeRTOS Includes
 #include <FreeRTOS.h>
 #include "ledDriver.h"
+#include "myButtons.h"
+#include "myTasks.h"
 
 
 // My Includes
@@ -47,8 +49,10 @@ int main (void)
 {
 	// Initialize The Board
 	prvMiscInitialisation();
+	intitializeLEDDriver();
+	initializeButtonDriver();
 	
-	// Create a Task to Handle Button Press and Light LED
+	// Create a Task to Handle Button Press and Light LED (for led 1, sw 1)
 	xTaskCreate(myButtonTask,                       // Function Called by task
 	"My Button Task",                        // Task Name
 	configMINIMAL_STACK_SIZE,                // Task Stack Size
@@ -58,6 +62,7 @@ int main (void)
 	
 	// Start The Scheduler
 	vTaskStartScheduler();
+
 
 	while(true) {}
 }
@@ -77,6 +82,10 @@ pin on ext3 header	pin on processor  function
 19					-					GND
 20					-					VCC
 */
+
+
+//
+
 
 static void prvInitialiseHeap( )
 {

@@ -3,6 +3,8 @@
 //Author:	Chad Revel
 //This is the led driver header file of the second lab for CST 347
 ////////////////////////////////////////////////////////////////////////////////
+#include <asf.h>
+#include <FreeRTOS.h>
 
 void intitializeLEDDriver(void);
 uint8_t readLED(uint8_t uiLedNum);
