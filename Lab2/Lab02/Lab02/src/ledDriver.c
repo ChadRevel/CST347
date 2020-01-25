@@ -42,18 +42,22 @@ uint8_t readLED(uint8_t uiLedNum)
 	2 = EXT_LED2
 	3 = EXT_LED3
 	*/
+	//if the led number is 1, then that will be for the external led #1
 	if (uiLedNum == 1)
 	{
 		return ioport_get_pin_level(EXT_LED1);
 	}
+	//else if the led number is 2, then that will be for the external led #2
 	else if (uiLedNum == 2)
 	{
 		return ioport_get_pin_level(EXT_LED2);
-	} 
+	}
+	//else if the led number is 3, then that will be for the external led #3 
 	else if (uiLedNum == 3)
 	{
 		return ioport_get_pin_level(EXT_LED3);
 	}
+	//else the ioport will be set for the on board led
 	else
 	{
 		return ioport_get_pin_level(LED_0_PIN);
@@ -66,22 +70,28 @@ uint8_t setLED(uint8_t uiLedNum, uint8_t uiLedValue)
 /*
 Sets the LED to a specified value (ON/OFF)
 */
-		
+		//if the led number is 1, then set the pin level
+		//to on for for the external led #1, and then return the readLED
 		if (uiLedNum == 1)
 		{
 			ioport_set_pin_level(EXT_LED1, 1);
 			return readLED(uiLedNum);			
 		}
+		//else if the led number is 2, then set the pin level
+		//to on for for the external led #2, and then return the readLED
 		else if (uiLedNum == 2)
 		{
 			ioport_set_pin_level(EXT_LED2, 1);
 			return readLED(uiLedNum);			
 		}
+		//else if the led number is 3, then set the pin level
+		//to on for for the external led #3, and then return the readLED
 		else if (uiLedNum == 3)
 		{
 			ioport_set_pin_level(EXT_LED1, 1);
 			return readLED(uiLedNum);	
 		}
+		//else set the on board led to on, then return the readLED
 		else
 		{
 			ioport_set_pin_level(LED_0_PIN, 1);
@@ -106,9 +116,3 @@ If the led is off, then turn it on
 	
 	
 }
-
-/*
-Next you will need to design a button driver as well.
-It should be similar to the LED driver with functions
-of initializeButtonDriver and readButton.
-*/

@@ -10,4 +10,4 @@
 #include "task.h"
 
 
-void myButtonTask(void * pvParamaters);
+void taskSystemControl(void * pvParamaters);

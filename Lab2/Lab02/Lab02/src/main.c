@@ -53,16 +53,15 @@ int main (void)
 	initializeButtonDriver();
 	
 	// Create a Task to Handle Button Press and Light LED (for led 1, sw 1)
-	xTaskCreate(myButtonTask,                       // Function Called by task
+	xTaskCreate(taskSystemControl,                       // Function Called by task
 	"My Button Task",                        // Task Name
 	configMINIMAL_STACK_SIZE,                // Task Stack Size
 	NULL,                                    // Any Parameters Passed to Task
 	1,                                       // Task Priority
 	NULL);                                   // Place to store Task Handle
-	
+		
 	// Start The Scheduler
 	vTaskStartScheduler();
-
 
 	while(true) {}
 }
