@@ -74,27 +74,27 @@ Sets the LED to a specified value (ON/OFF)
 		//to on for for the external led #1, and then return the readLED
 		if (uiLedNum == 1)
 		{
-			ioport_set_pin_level(EXT_LED1, 1);
+			ioport_set_pin_level(EXT_LED1, uiLedValue);
 			return readLED(uiLedNum);			
 		}
 		//else if the led number is 2, then set the pin level
 		//to on for for the external led #2, and then return the readLED
 		else if (uiLedNum == 2)
 		{
-			ioport_set_pin_level(EXT_LED2, 1);
+			ioport_set_pin_level(EXT_LED2, uiLedValue);
 			return readLED(uiLedNum);			
 		}
 		//else if the led number is 3, then set the pin level
 		//to on for for the external led #3, and then return the readLED
 		else if (uiLedNum == 3)
 		{
-			ioport_set_pin_level(EXT_LED1, 1);
+			ioport_set_pin_level(EXT_LED1, uiLedValue);
 			return readLED(uiLedNum);	
 		}
 		//else set the on board led to on, then return the readLED
 		else
 		{
-			ioport_set_pin_level(LED_0_PIN, 1);
+			ioport_set_pin_level(LED_0_PIN, uiLedValue);
 			return readLED(uiLedNum);
 		}
 }

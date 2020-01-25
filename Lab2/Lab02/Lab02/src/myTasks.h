@@ -8,6 +8,10 @@
 #include <asf.h>
 #include <FreeRTOS.h>
 #include "task.h"
+#include "myButtons.h"
+#include "ledDriver.h"
+#include "myDefines.h"
 
 
 void taskSystemControl(void * pvParamaters);
+void taskHeartBeat (void * pvParamaters);

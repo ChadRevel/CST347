@@ -141,7 +141,8 @@ src/myTasks.d src/myTasks.o: ../src/myTasks.c ../src/asf.h \
  ../src/FreeRTOS/include/deprecated_definitions.h \
  ../src/FreeRTOS/portable/GCC/ARM_CM4F/portmacro.h \
  ../src/FreeRTOS/include/mpu_wrappers.h ../src/myTasks.h \
- ../src/FreeRTOS/include/task.h ../src/FreeRTOS/include/list.h
+ ../src/FreeRTOS/include/task.h ../src/FreeRTOS/include/list.h \
+ ../src/myButtons.h ../src/ledDriver.h ../src/myDefines.h
 
 ../src/asf.h:
 
@@ -446,3 +447,9 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/FreeRTOS/include/task.h:
 
 ../src/FreeRTOS/include/list.h:
+
+../src/myButtons.h:
+
+../src/ledDriver.h:
+
+../src/myDefines.h:

@@ -1,160 +1,146 @@
 ////////////////////////////////////////////////////////////////////////////////
 //File: myTasks.c
 //Author:	Chad Revel
-//This is the main task file of the second lab for CST 347
+//This is the task file of the second lab for CST 347
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <asf.h>
 #include <FreeRTOS.h>
 #include "myTasks.h"
 
-//global variables for the tasks
-int theTask = 0;
+//gonna need 2 delay variables. 1 with 500ms, and 1 with 1000ms. Still need the while loop for the toggle.
+//Block for 500ms being xDelay, 1000ms for xDelay2
+//xDelay2 is for the taskHeartbeat, so LED0 will flash every second
 const TickType_t xDelay = 500 / portTICK_PERIOD_MS;
 const TickType_t xDelay2 = 1000 / portTICK_PERIOD_MS;
-int ledNum;
+const TickType_t xDelay3 = 100 / portTICK_PERIOD_MS;
+
+//the task handles for each of the leds
+TaskHandle_t LEDHandle0 = NULL;
+TaskHandle_t LEDHandle1 = NULL;
+TaskHandle_t LEDHandle2 = NULL;
+TaskHandle_t LEDHandle3 = NULL;
+
 
 void taskSystemControl(void * pvParamaters)
 {
-	
-	//make TaskHandle_t LED0Handle = NULL; for the leds with the numbers
-	//gonna need 2 delay variables. 1 with 500ms, and 1 with 1000ms. Still need the while loop for the toggle.
-	//Block for 500ms being xDelay, 1000ms for xDelay2
-	//xDelay2 is for the taskHeartbeat, so LED0 will flash every second
+//creating a task for the led0 to beat. Need to pass in a parameter of 0, to show that it's for led0
+xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, 1, &LEDHandle0);
+                                 
 
-		
+
 	while (true)
 	{
-
-			
-		//The next button tasks will be when the buttons are pushed
-
-		if ()
+		//the first case will be for sw1
+		//it will create the task for each of the leds.
+		if (readButton(SW1) == 1)
 		{
-			switch (theTask)
+			if (LEDHandle1 == NULL)
 			{
-				case 0:
-				//this will be the first task for ext_sw1 is pressed,
-				//then the led1 will flash
-				if readButton(EXT_SW1, 1) // use own functions for the case statements
-				{
-					// Create a Task to Handle Button Press and Light LED (for led 1, sw 1)
-					xTaskCreate(taskSystemControl, "My Button Task", configMINIMAL_STACK_SIZE, 1, 1, 1);
-					vTaskDelay(xDelay2);
-					theTask = 1;                                   
-				}
-				else if (ioport_get_pin_level(EXT_SW2, 1))
-				{
-					vTaskSuspend(taskSystemControl, "My Button Task", configMINIMAL_STACK_SIZE, 1, 1, 1);
-					theTask = 0;
-				}
-				else
-					vTaskSuspend(taskSystemControl, "My Button Task", configMINIMAL_STACK_SIZE, 1, 1, 1)
-				break;
-				case 1:
-				//this will be the second task for ext_sw1, is pressed again,
-				//then led2 will flash
-				if (ioport_get_pin_level(EXT_SW1, 1))
-				{
-					xTaskCreate(taskSystemControl, "My Button Task", configMINIMAL_STACK_SIZE, 2, 1, 2);
-					vTaskDelay(xDelay2);
-					theTask = 2;
-					
-				}
-				else if (ioport_get_pin_level(EXT_SW2, 1))
-				{
-					vTaskSuspend(taskSystemControl, "My Button Task", configMINIMAL_STACK_SIZE, 1, 1, 1);
-					theTask = 1;					
-					
-				}
-				break;
-			
-				case 2:
-				//this will be the third task for ext_sw1 is pressed a final time,
-				//this will make led3 to flash.
-				//any further pushes do nothing
-				break;
-			
-				case 3:
-				//this will be the fourth task for ext_sw2 being pressed,
-				//this will have the highest led flashing to stop.
-				break;
-			
-				case 4:
-				//this will be the fifth task for the ext_sw2 being pressed a second time,
-				//this will have the second highest led to stop flashing
-				break;
-			
-				case 5:
-				//this will be the sixth task for the ext_sw2 being pressed another time,
-				//this will have the final led to stop flashing
-				//any further pushes do nothing
-				break;
-			
-				case 6:
-				//this will be for the on board switch.
-				//this will freeze all the flashing leds
-				//if fewer than 3 leds are flashing, then sw1 will have the opportunity
-				//to cause any higher leds to start flashing.
-				break;
-			
-				case 7:
-				//this will be the second press of sw0.
-				//this will unfreeze the frozen leds
-				//this will be done by suspending all currently running led tasks
-				//on the first button press.
-				//the second press will resume all the created led tasks. use vTaskSuspend and vTaskResume.
-				break;
-				
-				default:
-				break;
+				//create a task for led to start beating
+				xTaskCreate(taskHeartBeat, "LED1 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 1, 1, &LEDHandle1);
 			}
-			
-			
-			
+			else if (LEDHandle2 == NULL)
+			{
+				//create a task for led to start beating
+				xTaskCreate(taskHeartBeat, "LED2 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 2, 1, &LEDHandle2);
+			}
+			else if (LEDHandle3 == NULL)
+			{
+				//create a task for led to start beating
+				xTaskCreate(taskHeartBeat, "LED3 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 3, 1, &LEDHandle3);					
+			}
+				
 		}
+
+		//if sw 2 is pressed, then check each led from the highest led to the lowest, then delete the task
+		else if (readButton(SW2) == 1)
+		{
+			if (LEDHandle3 != NULL)
+			{
+				vTaskDelete(LEDHandle3);
+			}
+			else if (LEDHandle2 != NULL)
+			{
+				vTaskDelete(LEDHandle2);
+			}
+			else if (LEDHandle1 != NULL)
+			{
+				vTaskDelete(LEDHandle1);
+			}
+
+		}
+
+		//For the on board switch, if it's pressed, then suspend, or release the leds
+		else if (readButton(SW0) == 1)
+		{
+			if (LEDHandle1 != NULL)
+			{
+				vTaskSuspend(LEDHandle1);
+			}
+			else if (LEDHandle2 != NULL)
+			{
+				vTaskSuspend(LEDHandle2);
+			}
+			else if (LEDHandle3 != NULL)
+			{
+				vTaskSuspend(LEDHandle3);
+			}
+			else if (LEDHandle1 == NULL)
+			{
+				vTaskResume(LEDHandle1);
+			}
+			else if (LEDHandle2 == NULL)
+			{
+				vTaskResume(LEDHandle2);
+			}
+			else if (LEDHandle3 == NULL)
+			{
+				vTaskResume(LEDHandle3);
+			}		
+		
+		}
+		//delay for 100ms after all 3 switches
+		vTaskDelay(xDelay3);
 	}
 
 }
 		
 void taskHeartBeat (void * pvParamaters)		
 {
-	(uint32_t  ledNum = (uint32_t) pvParamaters);
-	//if, else or case statement for the task
-		 
-			//This will be the heartbeat of LED0 to show that the board is still working
-			ioport_set_pin_level(LED_0_PIN, LED_0_ACTIVE);
-			vTaskDelay( xDelay2 );
-			ioport_set_pin_level(LED_0_PIN, !LED_0_ACTIVE);
-			vTaskDelay( xDelay2 );
+	//set up the LedNumber for the parameters
+	uint32_t ledNum = (uint32_t) pvParamaters;
+	//this is the heartbeat for LED 0 to happen once every second
+	while (true)
+	{
+		//toggle the 4 leds to their respective delays
+		switch(ledNum)
+		{
+			case 0:
+				toggleLED(LED0);
+			break;
+			case 1:
+				toggleLED(LED1);
+			break;
+			case 2:
+				toggleLED(LED2);
+			break;
+			case 3:
+				toggleLED(LED3);
+			break;
+			
+			default:
+			break;	
+		}
+		//set the delay for the specific leds
+		if (ledNum == 0)
+		{
+			vTaskDelay(xDelay2);
+		}
+		else
+		{
+			vTaskDelay(xDelay);
+		}
+	}
+		
 }
-	
-
-			
-			
-			
-			///////////////////////////////////////////////////////////////////////////////
-			//this is from lab 1
-			///* Block for 500ms. */
-			//const TickType_t xDelay = 500 / portTICK_PERIOD_MS;
-			//while (true)
-			//{
-			///* Is button pressed? */
-			//if (ioport_get_pin_level(BUTTON_0_PIN) == BUTTON_0_ACTIVE)
-			//{
-			//
-			///* Yes, so turn LED on. */
-			//ioport_set_pin_level(LED_0_PIN, LED_0_ACTIVE);
-			//vTaskDelay( xDelay );
-			//ioport_set_pin_level(LED_0_PIN, !LED_0_ACTIVE);
-			//vTaskDelay( xDelay );
-			//
-			//}
-			//else
-			//{
-			///* No, so turn LED off. */
-			//ioport_set_pin_level(LED_0_PIN, !LED_0_ACTIVE);
-			//}
-			//}
-			//}
-			

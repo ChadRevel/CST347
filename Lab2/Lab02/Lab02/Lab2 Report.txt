@@ -1,0 +1,4 @@
+Lab 2 Notes
+
+I was not able to get any of the 4 leds to toggle so far. But will continue working on it over the weekend and when
+I finally get it to work, then I'll be uploading a video of the leds and buttons working.

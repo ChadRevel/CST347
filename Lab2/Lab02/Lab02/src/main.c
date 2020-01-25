@@ -12,6 +12,7 @@
 #include "ledDriver.h"
 #include "myButtons.h"
 #include "myTasks.h"
+#include "myDefines.h"
 
 
 // My Includes
@@ -28,13 +29,6 @@
 #endif /* SAM4E_XPLAINED_PRO */
 
 
-/*
-xTaskCreate()
-vTaskDelete()
-vTaskSuspend()
-vTaskResume()
-vTaskDelay()
-*/
 // Function Prototypes
 static void prvMiscInitialisation( void );
 static void prvInitialiseHeap( void );
@@ -52,7 +46,7 @@ int main (void)
 	intitializeLEDDriver();
 	initializeButtonDriver();
 	
-	// Create a Task to Handle Button Press and Light LED (for led 1, sw 1)
+	// Create a Task to Handle Button Press and Light LED
 	xTaskCreate(taskSystemControl,                       // Function Called by task
 	"My Button Task",                        // Task Name
 	configMINIMAL_STACK_SIZE,                // Task Stack Size

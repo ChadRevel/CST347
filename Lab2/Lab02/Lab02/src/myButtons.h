@@ -8,4 +8,4 @@
 
 //initializeButtonDriver and readButton
 void initializeButtonDriver(void);
-int readButton(uint8_t uiButtonNum);
+uint8_t readButton(uint8_t uiButtonNum);

@@ -13,4 +13,15 @@
 #define EXT_SW1		PIO_PD26_IDX
 #define EXT_SW2		PIO_PD30_IDX
 
+
+//other variables to be used in myTasks
+#define LED0	0
+#define LED1	1
+#define LED2	2
+#define LED3	3
+ 
+#define SW0		0
+#define SW1		1
+#define SW2		2
+
 #endif
