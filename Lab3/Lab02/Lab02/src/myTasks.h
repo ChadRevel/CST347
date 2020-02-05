@@ -17,5 +17,9 @@
 void taskSystemControl(void * pvParamaters);
 void taskHeartBeat (void * pvParamaters);
 void taskLED(void * pvParameters);
+QueueHandle_t queueCreation(void);
+void mainControlTask(void);
+
+
 
 #endif

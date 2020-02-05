@@ -6,6 +6,19 @@
 
 #include "Uartdrv.h"
 
+/*
+The UART task will block until a message is ready for it.
+To accomplish this blocking set the last parameter of the xQueueReceive() to portMAX_DELAY.
+It will then get the message and write it out on the UART using your UARTPutStr().
+You will need to write a very rudimentary UART driver for your program.
+The filenames for the driver will be uartdrv.c and uartdrv.h.
+This should include three functions.
+The functions should be initUART(), UARTPutC() and UARTPutStr().
+
+The initUART() function will initialize the UART.
+The UARTPutC() will print a single byte (char) to the UART.
+The UARTPutStr() function will use the UARTPutC() to write a complete string to the UART.
+*/
 
 uint8_t initUart(Uart * p_Uart)
 {
@@ -47,19 +60,16 @@ uint8_t initUart(Uart * p_Uart)
 	return retVal;
 }
 
-void UARTPutC(Uart * pUart, char data)
+void UARTPutC(Uart * p_Uart, char data)
 {
-	//// Wait for Transmitter to be Ready
-	//while((p_Uart->UART_SR & UART_SR_TXRDY) == 0)
-	//{ }
-		//pUart->UART_THR
-		//
-		
-			   
-	
+	// Wait for Transmitter to be Ready
+	while((p_Uart->UART_SR & UART_SR_TXRDY) == 0)
+	{ }
+
 }
 
-void UARTPutStr(Uart * pUart, char * data, uint8_t len)
+void UARTPutStr(Uart * p_Uart, char * data, uint8_t len)
 {
-	
+	//call the vUARTPutC();
+	UARTPutC(p_Uart, data);
 }

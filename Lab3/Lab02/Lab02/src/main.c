@@ -39,6 +39,31 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 // Used to place the heap
 extern char _estack;
 
+char UARTbuffer [50];
+enum theDirection dirSize;
+
+
+//////////////////////////////////////////////////
+//lab 3 part
+
+//create the 3 queue handles for the leds
+QueueHandle_t led1Q = 0;
+QueueHandle_t led2Q = 0;
+QueueHandle_t led3Q = 0;
+QueueHandle_t UARTQ = 0;
+
+//create the handles for the leds
+TaskHandle_t xHandle[3] = {NULL, NULL, NULL};
+TaskHandle_t LED1H = NULL;
+TaskHandle_t LED2H = NULL;
+TaskHandle_t LED3H = NULL;	
+	
+//create the handles for the main control tasks
+QueueHandle_t ledController1 = NULL;
+QueueHandle_t ledController2 = NULL;
+QueueHandle_t ledController3 = NULL;
+
+
 //make message enum that is increase or decrease. So the queue can send anything across.
 
 int main (void)
@@ -48,6 +73,46 @@ int main (void)
 	intitializeLEDDriver();
 	initializeButtonDriver();
 	
+	/*
+	The MainControl task will poll the status of all three switches (just as we did in lab 2). 
+	The switches should be debounced with a three stage strategy: 
+	Read the switch, Delay 10ms using a vTaskDelay, then read switch again to verify the change. 
+	In addition you should implement a lockout feature in your driver only allowing a switch to perform a single action on a press. 
+	There will be three of these tasks (only 1 active at a time). 
+	Each of these task will send messages via a queue to its corresponding LED task. 
+	The switches will perform the following function.
+	*/
+	
+	QueueHandle_t * theQueueHandles = queueCreation();
+
+	//create the queues for the handles
+	led1Q = xQueueCreate(5, sizeof(theDirection));
+	led2Q = xQueueCreate(5, sizeof(theDirection));
+	led3Q = xQueueCreate(5, sizeof(theDirection));
+	UARTQ = xQueueCreate(5, sizeof(UARTBuffer));
+
+
+	//create the input parameters for the leds
+	struct inputLEDTask led1P = {LED1, led1Q};
+	struct inputLEDTask led2P = {LED2, led2Q};
+	struct inputLEDTask led3P = {LED3, led3Q};
+
+	
+	//create the input parameters for the 3 main control
+	struct mainTaskInput mainControlLED1P = (led1Q, ledController1, UARTQ);
+	struct mainTaskInput mainControlLED2P = (led2Q, ledController2, UARTQ);
+	struct mainTaskInput mainControlLED3P = (led3Q, ledController3, UARTQ);
+	
+	
+	//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
+	xTaskCreate(taskMainControl, "Main Control Take 1", configMINIMAL_STACK_SIZE, NULL, 1, &LED1H);
+	xTaskCreate(taskMainControl, "Main Control Take 2", configMINIMAL_STACK_SIZE, NULL, 1, &LED2H);
+	xTaskCreate(taskMainControl, "Main Control Take 3", configMINIMAL_STACK_SIZE, NULL, 1, &LED3H);
+	
+	//now suspend the latter 2 tasks
+	vTaskSuspend(LED2H);
+	vTaskSuspend(LED3H);
+	
 	// Create a Task to Handle Button Press and Light LED
 	xTaskCreate(taskSystemControl,                       // Function Called by task
 	"My Button Task",                        // Task Name
@@ -56,20 +121,7 @@ int main (void)
 	1,                                       // Task Priority
 	NULL);                                   // Place to store Task Handle
 	
-	//////////////////////////////////////////////////
-	//lab 3 part
-	TaskHandle_t xHandle[3] = {NULL, NULL, NULL};
-		
-		//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
-		//xTaskCreate(taskMainControl, "Main Control Take 1", configMINIMAL_STACK_SIZE, NULL, 1, &xHandle[0]);
-		//xTaskCreate(taskMainControl, "Main Control Take 2", configMINIMAL_STACK_SIZE, NULL, 1, &xHandle[1]);
-		//xTaskCreate(taskMainControl, "Main Control Take 2", configMINIMAL_STACK_SIZE, NULL, 1, &xHandle[2]);
-		//
-		//now suspend the latter 2 tasks
-		//vTaskSuspend(xHandle[1]);
-		//vTaskSuspend(xHandle[2]);
-		//
-				
+
 	// Start The Scheduler
 	vTaskStartScheduler();
 
