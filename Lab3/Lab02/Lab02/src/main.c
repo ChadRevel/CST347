@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //File:	main.c
 //Author:	Chad Revel
-//This is the main file of the second lab for CST 347
+//This is the main file of the third lab for CST 347
 ////////////////////////////////////////////////////////////////////////////////
 
 //system includes
@@ -9,6 +9,7 @@
 
 // FreeRTOS Includes
 #include <FreeRTOS.h>
+#include "queue.h"
 #include "ledDriver.h"
 #include "myButtons.h"
 #include "myTasks.h"
@@ -46,22 +47,13 @@ enum theDirection dirSize;
 //////////////////////////////////////////////////
 //lab 3 part
 
-//create the 3 queue handles for the leds
-QueueHandle_t led1Q = 0;
-QueueHandle_t led2Q = 0;
-QueueHandle_t led3Q = 0;
+//create the 3 queue handles for the leds and the controllers
+QueueHandle_t ledQ[3] = {0, 0, 0};
 QueueHandle_t UARTQ = 0;
+QueueHandle_t ledController[3] = {NULL, NULL, NULL};
 
 //create the handles for the leds
-TaskHandle_t xHandle[3] = {NULL, NULL, NULL};
-TaskHandle_t LED1H = NULL;
-TaskHandle_t LED2H = NULL;
-TaskHandle_t LED3H = NULL;	
-	
-//create the handles for the main control tasks
-QueueHandle_t ledController1 = NULL;
-QueueHandle_t ledController2 = NULL;
-QueueHandle_t ledController3 = NULL;
+TaskHandle_t LEDHandle[3] = {NULL, NULL, NULL};
 
 
 //make message enum that is increase or decrease. So the queue can send anything across.
@@ -86,25 +78,26 @@ int main (void)
 	QueueHandle_t * theQueueHandles = queueCreation();
 
 	//create the queues for the handles
-	led1Q = xQueueCreate(5, sizeof(theDirection));
-	led2Q = xQueueCreate(5, sizeof(theDirection));
-	led3Q = xQueueCreate(5, sizeof(theDirection));
+	ledQ[1] = xQueueCreate(5, sizeof(theDirection));
+	ledQ[2] = xQueueCreate(5, sizeof(theDirection));
+	ledQ[3] = xQueueCreate(5, sizeof(theDirection));
 	UARTQ = xQueueCreate(5, sizeof(UARTBuffer));
 
 
-	//create the input parameters for the leds
-	struct inputLEDTask led1P = {LED1, led1Q};
-	struct inputLEDTask led2P = {LED2, led2Q};
-	struct inputLEDTask led3P = {LED3, led3Q};
+	//create a data input for the parameters of the leds
+	struct inputLEDTask ledParameter1 = {LED1, ledQ[1]};
+	struct inputLEDTask ledParameter2 = {LED2, ledQ[2]};
+	struct inputLEDTask ledParameter3 = {LED3, ledQ[3]};
 
 	
-	//create the input parameters for the 3 main control
-	struct mainTaskInput mainControlLED1P = (led1Q, ledController1, UARTQ);
-	struct mainTaskInput mainControlLED2P = (led2Q, ledController2, UARTQ);
-	struct mainTaskInput mainControlLED3P = (led3Q, ledController3, UARTQ);
+	//create a data input for the parameters of the 3 main controls
+	struct mainTaskInput mainControlLEDParameter1 = (ledQ[1], ledController1, UARTQ);
+	struct mainTaskInput mainControlLEDParameter2 = (ledQ[2], ledController2, UARTQ);
+	struct mainTaskInput mainControlLEDParameter3 = (ledQ[3], ledController3, UARTQ);
 	
 	
 	//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
+	//not sure if still need these and the 2 suspends.
 	xTaskCreate(taskMainControl, "Main Control Take 1", configMINIMAL_STACK_SIZE, NULL, 1, &LED1H);
 	xTaskCreate(taskMainControl, "Main Control Take 2", configMINIMAL_STACK_SIZE, NULL, 1, &LED2H);
 	xTaskCreate(taskMainControl, "Main Control Take 3", configMINIMAL_STACK_SIZE, NULL, 1, &LED3H);
@@ -127,25 +120,6 @@ int main (void)
 
 	while(true) {}
 }
-
-
-//need EXT_SW1, EXT_SW2, and SW0(on board switch).
-//will also need EXT_LED1, EXT_LED2, EXT_LED3
-//the ports need to all be priority 1
-
-/*
-pin on ext3 header	pin on processor  function
-5					PD28				EXT_LED1
-6					PD17				EXT_LED2
-9					PE1					EXT_LED3
-10					PD26				EXT_SW1
-15					PD30				EXT_SW2
-19					-					GND
-20					-					VCC
-*/
-
-
-//
 
 
 static void prvInitialiseHeap( )

@@ -14,13 +14,13 @@ src\FreeRTOS\tasks.c
 
 src\FreeRTOS\timers.c
 
-src\FreeRTOS\Uartdrv.c
-
 src\ledDriver.c
 
 src\myButtons.c
 
 src\myTasks.c
+
+src\Uartdrv.c
 
 src\ASF\common\services\clock\sam4e\sysclk.c
 

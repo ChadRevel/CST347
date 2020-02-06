@@ -531,9 +531,6 @@
     <Compile Include="src\FreeRTOS\timers.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\FreeRTOS\Uartdrv.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\ledDriver.c">
       <SubType>compile</SubType>
     </Compile>
@@ -553,6 +550,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\myTasks.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\Uartdrv.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\Uartdrv.h">
