@@ -64,12 +64,16 @@ void UARTPutC(Uart * p_Uart, char data)
 {
 	// Wait for Transmitter to be Ready
 	while((p_Uart->UART_SR & UART_SR_TXRDY) == 0)
-	{ }
+	{p_Uart->UART_SR = data;}
 
 }
 
 void UARTPutStr(Uart * p_Uart, char * data, uint8_t len)
 {
 	//call the vUARTPutC();
-	UARTPutC(p_Uart, data);
+	for (int i = 0; i < len; i++)
+	{
+		UARTPutC(p_Uart, data[i]);
+	}
+	
 }

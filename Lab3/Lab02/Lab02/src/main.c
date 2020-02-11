@@ -40,23 +40,34 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 // Used to place the heap
 extern char _estack;
 
-char UARTbuffer [50];
-enum theDirection dirSize;
+char uartBuffer [50];
+
 
 
 //////////////////////////////////////////////////
 //lab 3 part
 
-//create the 3 queue handles for the leds and the controllers
-QueueHandle_t ledQ[3] = {0, 0, 0};
-QueueHandle_t UARTQ = 0;
-QueueHandle_t ledController[3] = {NULL, NULL, NULL};
-
-//create the handles for the leds
-TaskHandle_t LEDHandle[3] = {NULL, NULL, NULL};
+//create the 3 queue handles for controlling the queues
+QueueHandle_t ledQ[3] = {NULL, NULL, NULL};
+QueueHandle_t uartQ = NULL;
 
 
-//make message enum that is increase or decrease. So the queue can send anything across.
+//create the handles for the controlling the tasks
+TaskHandle_t ledHandle[3] = {NULL, NULL, NULL};
+TaskHandle_t uartHandle = NULL; 
+TaskHandle_t nextTask = NULL;
+
+
+
+	
+struct controlStruct controlLED1;
+struct controlStruct controlLED2;
+struct controlStruct controlLED3;
+	
+struct ledStruct LED1Struct;
+struct ledStruct LED2Struct;
+struct ledStruct LED3Struct;
+	
 
 int main (void)
 {
@@ -64,6 +75,11 @@ int main (void)
 	prvMiscInitialisation();
 	intitializeLEDDriver();
 	initializeButtonDriver();
+	initUART(EDBG_UART);
+	
+	const char* startText = "/r/n/r/n/r/nThis is Lab3/r/n/r/n/r/n";
+	UARTPutStr(EDBG_UART, startText, sizeof(startText));
+	
 	
 	/*
 	The MainControl task will poll the status of all three switches (just as we did in lab 2). 
@@ -74,37 +90,64 @@ int main (void)
 	Each of these task will send messages via a queue to its corresponding LED task. 
 	The switches will perform the following function.
 	*/
-	
-	QueueHandle_t * theQueueHandles = queueCreation();
 
 	//create the queues for the handles
-	ledQ[1] = xQueueCreate(5, sizeof(theDirection));
-	ledQ[2] = xQueueCreate(5, sizeof(theDirection));
-	ledQ[3] = xQueueCreate(5, sizeof(theDirection));
-	UARTQ = xQueueCreate(5, sizeof(UARTBuffer));
+	ledQ[1] = xQueueCreate(5, sizeof(currLED));
+	ledQ[2] = xQueueCreate(5, sizeof(currLED));
+	ledQ[3] = xQueueCreate(5, sizeof(currLED));
+	uartQ = xQueueCreate(5, sizeof(char[50]));
 
 
-	//create a data input for the parameters of the leds
-	struct inputLEDTask ledParameter1 = {LED1, ledQ[1]};
-	struct inputLEDTask ledParameter2 = {LED2, ledQ[2]};
-	struct inputLEDTask ledParameter3 = {LED3, ledQ[3]};
-
+	//create structs to be able to pass in the values around and not have everything set as a global variable
+	controlLED1.ledQ = ledQ[1];
+	controlLED1.uartQ = uartQ;
+	controlLED1.ledHandle = ledHandle[1];
+	controlLED1.nextTask = nextTask;
+	controlLED1.ledNum = LED1;
+	controlLED2.ledQ = ledQ[2];
+	controlLED2.uartQ = uartQ;
+	controlLED2.ledHandle = ledHandle[2];
+	controlLED2.nextTask = nextTask;
+	controlLED2.ledNum = LED2;
+	controlLED3.ledQ = ledQ[3];
+	controlLED3.uartQ = uartQ;
+	controlLED3.ledHandle = ledHandle[3];
+	controlLED3.nextTask = nextTask;	
+	controlLED3.ledNum = LED3;
 	
-	//create a data input for the parameters of the 3 main controls
-	struct mainTaskInput mainControlLEDParameter1 = (ledQ[1], ledController1, UARTQ);
-	struct mainTaskInput mainControlLEDParameter2 = (ledQ[2], ledController2, UARTQ);
-	struct mainTaskInput mainControlLEDParameter3 = (ledQ[3], ledController3, UARTQ);
+	//controlLED1 = {&ledQ[1], &uartQ, &ledHandle[1], nextTask, LED1};
+	//controlLED2 = {&ledQ[2], &uartQ, &ledHandle[2], nextTask, LED2};
+	//controlLED3 = {&ledQ[3], &uartQ, &ledHandle[3], nextTask, LED3};
+	LED1Struct.ledQ = ledQ[1];
+	LED1Struct.uartQ = uartQ;
+	LED1Struct.ledNum = LED1;
+	LED2Struct.ledQ = ledQ[2];
+	LED2Struct.uartQ = uartQ;
+	LED2Struct.ledNum = LED2;
+	LED3Struct.ledQ = ledQ[3];
+	LED3Struct.uartQ = uartQ;
+	LED3Struct.ledNum = LED3;
+	//LED1Struct = {&ledQ[1], &uartQ, LED1};
+	//LED2Struct = {&ledQ[2], &uartQ, LED2};
+	//LED3Struct = {&ledQ[3], &uartQ, LED3};
 	
+
+//need 3 led task creates as well
+
+	//creating a task for the led0 to beat. Need to pass in a parameter of 0, to show that it's for led0
+	xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, 1, NULL);
+	
+	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, &uartHandle, 1, NULL);
 	
 	//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
 	//not sure if still need these and the 2 suspends.
-	xTaskCreate(taskMainControl, "Main Control Take 1", configMINIMAL_STACK_SIZE, NULL, 1, &LED1H);
-	xTaskCreate(taskMainControl, "Main Control Take 2", configMINIMAL_STACK_SIZE, NULL, 1, &LED2H);
-	xTaskCreate(taskMainControl, "Main Control Take 3", configMINIMAL_STACK_SIZE, NULL, 1, &LED3H);
+	xTaskCreate(taskSystemControl, "Main Control Take 1 for LED1", configMINIMAL_STACK_SIZE, (void *) &controlLED1, 1, &ledHandle[1]);
+	xTaskCreate(taskSystemControl, "Main Control Take 2 for LED2", configMINIMAL_STACK_SIZE, (void *) &controlLED2, 1, &ledHandle[2]);
+	xTaskCreate(taskSystemControl, "Main Control Take 3 for LED3", configMINIMAL_STACK_SIZE, (void *) &controlLED3, 1, &ledHandle[3]);
 	
 	//now suspend the latter 2 tasks
-	vTaskSuspend(LED2H);
-	vTaskSuspend(LED3H);
+	vTaskSuspend(ledHandle[1]);
+	vTaskSuspend(ledHandle[2]);
 	
 	// Create a Task to Handle Button Press and Light LED
 	xTaskCreate(taskSystemControl,                       // Function Called by task
