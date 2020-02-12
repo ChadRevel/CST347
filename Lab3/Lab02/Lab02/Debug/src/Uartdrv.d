@@ -1,5 +1,5 @@
-src/main.d src/main.o: ../src/main.c ../src/asf.h \
- ../src/ASF/sam/utils/compiler.h \
+src/Uartdrv.d src/Uartdrv.o: ../src/Uartdrv.c ../src/Uartdrv.h \
+ ../src/asf.h ../src/ASF/sam/utils/compiler.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\lib\gcc\arm-none-eabi\6.3.1\include\stddef.h \
  ../src/ASF/common/utils/parts.h \
  ../src/ASF/sam/utils/preprocessor/preprocessor.h \
@@ -140,14 +140,13 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/FreeRTOS/include/projdefs.h ../src/FreeRTOS/include/portable.h \
  ../src/FreeRTOS/include/deprecated_definitions.h \
  ../src/FreeRTOS/portable/GCC/ARM_CM4F/portmacro.h \
- ../src/FreeRTOS/include/mpu_wrappers.h ../src/FreeRTOS/include/queue.h \
- ../src/FreeRTOS/include/task.h ../src/FreeRTOS/include/list.h \
- ../src/ledDriver.h ../src/myButtons.h ../src/myTasks.h \
- ../src/FreeRTOS/include/task.h ../src/Uartdrv.h \
+ ../src/FreeRTOS/include/mpu_wrappers.h ../src/FreeRTOS/include/task.h \
+ ../src/FreeRTOS/include/list.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
- c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h \
- ../src/myDefines.h
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h
+
+../src/Uartdrv.h:
 
 ../src/asf.h:
 
@@ -447,26 +446,12 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/FreeRTOS/include/mpu_wrappers.h:
 
-../src/FreeRTOS/include/queue.h:
-
 ../src/FreeRTOS/include/task.h:
 
 ../src/FreeRTOS/include/list.h:
-
-../src/ledDriver.h:
-
-../src/myButtons.h:
-
-../src/myTasks.h:
-
-../src/FreeRTOS/include/task.h:
-
-../src/Uartdrv.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h:
-
-../src/myDefines.h:

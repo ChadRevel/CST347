@@ -10,6 +10,7 @@
 #include <FreeRTOS.h>
 #include "task.h"
 #include "queue.h"
+#include "Uartdrv.h"
 #include "myButtons.h"
 #include "ledDriver.h"
 #include "myDefines.h"
@@ -20,6 +21,7 @@ typedef struct ledStruct{QueueHandle_t ledQ; QueueHandle_t uartQ; uint8_t ledNum
 	
 typedef enum currLED {LED1, LED2, LED3} currLED;
 typedef enum timeDelay {INCREASE, DECREASE} timeDelay;
+
 
 void taskSystemControl(void * pvParamaters);
 void taskHeartBeat (void * pvParamaters);

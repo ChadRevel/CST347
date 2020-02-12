@@ -15,7 +15,14 @@
 
 const TickType_t xDelay2 = 1000 / portTICK_PERIOD_MS;
 const TickType_t xDelay3 = 100 / portTICK_PERIOD_MS;
- 
+
+extern char uartBuffer1D [50];
+extern char uartBuffer2D [50];
+extern char uartBuffer3D [50];
+
+extern char uartBuffer1I [50];
+extern char uartBuffer2I [50];
+extern char uartBuffer3I [50]; 
 
 
 void taskSystemControl(void * pvParamaters)
@@ -24,7 +31,7 @@ void taskSystemControl(void * pvParamaters)
 	QueueHandle_t ledQueueParam = controlParams->ledQ;
 	QueueHandle_t uartQueueParam = controlParams->uartQ;
 	TaskHandle_t nextTaskHandleParam = controlParams->nextTask;
-	int ledParam = controlParams->ledNum;
+	uint8_t ledParam = controlParams->ledNum;
                
 	//declaration for either increasing or decreasing the speed			                     
 	enum timeDelay incDec;
@@ -37,29 +44,31 @@ void taskSystemControl(void * pvParamaters)
 		EXT_SW1
 		This Switch will decrease the delay time of the corresponding LED task.
 		It will accomplish this by sending a message to this task via the queue setup for this
-		pair using the API function vQueueSendToBack() function.
+		pair using the API function xQueueSendToBack() function.
 		The message will tell the LED task to decrease its delay time.
 		*/
 		if (readButton(SW1) == 1)
 		{
-			if (ledQueueParam != NULL &&)
+			//led1
+			if (ledQueueParam != NULL)
 			{
 				//send led1 back to the end of the queue
-				if(xQueueSendToBack(ledQueueParam, (void *) incDec, (TickType_t) 0) != pdTRUE);
-				xQueueSendToBack(uartQueueParam, uartBuffer("queue LED1 \n\r"), 0);
-				//#define xQueueSendToBack( xQueue, pvItemToQueue, xTicksToWait ) xQueueGenericSend( ( xQueue ), ( pvItemToQueue ), ( xTicksToWait ), queueSEND_TO_BACK )
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 0);
+				xQueueSendToBack(uartQueueParam, (void *) uartBuffer1D, (TickType_t) 0);
 			}
+			//led2
 			else if (ledQueueParam != NULL)
 			{
 				//send led2 back to the end of the queue
-				if(xQueueSendToBack(ledQueueParam, (void *) incDec, (TickType_t) 0) != pdTRUE)
-				uartBuffer("queue LED2 \n\r");
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 0);
+				xQueueSendToBack(uartQueueParam, (void *) uartBuffer2D, (TickType_t) 0);
 			}
+			//led3
 			else if (ledQueueParam != NULL)
 			{
 				//send led3 back to the end of the queue
-				if(xQueueSendToBack(ledQueueParam, (void *) incDec, (TickType_t) 0) != pdTRUE)
-				uartBuffer("queue LED3 \n\r");
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 0);
+				xQueueSendToBack(uartQueueParam, (void *) uartBuffer3D, (TickType_t) 0);
 			}
 				
 		}
@@ -69,27 +78,30 @@ void taskSystemControl(void * pvParamaters)
 		EXT_SW2
 		This Switch will increase the delay time of the corresponding LED task.
 		It will accomplish this by sending a message to this task via the queue setup for this pair.
-		It will accomplish this by calling vQueueSendToBack() function.
+		It will accomplish this by calling xQueueSendToBack() function.
 		*/
 		else if (readButton(SW2) == 1)
 		{
-			if (ledQ[1] != NULL)
+			//led1
+			if (ledQueueParam != NULL)
 			{
 				//send led1 back to the end of the queue
-				if(xQueueSendToBack(ledQ[1], (void *) &currLED, (TickType_t) 1) != pdTRUE)
-				uartBuffer("queue LED1 error\n\r");
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 1);
+				xQueueSendToBack(uartQueueParam, (void *) uartBuffer1I, (TickType_t) 0);
 			}
-			else if (ledQ[2] != NULL)
+			//led2
+			else if (ledQueueParam != NULL)
 			{
 				//send led2 back to the end of the queue
-				if(xQueueSendToBack(ledQ[2], (void *) &currLED, (TickType_t) 1) != pdTRUE)
-				uartBuffer("queue LED2 error\n\r");
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 1);
+				xQueueSendToBack(uartQueueParam, (void *) uartBuffer2I, (TickType_t) 0);
 			}
-			else if (ledQ[3] != NULL)
+			//led3
+			else if (ledQueueParam != NULL)
 			{
 				//send led3 back to the end of the queue
-				if(xQueueSendToBack(ledQ[3], (void *) &currLED, (TickType_t) 1) != pdTRUE)
-				uartBuffer("queue LED3 error\n\r");
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 1);
+				xQueueSendToBack(uartQueueParam, (void *) uartBuffer3I, (TickType_t) 0);
 			}
 
 		}
@@ -109,31 +121,32 @@ void taskSystemControl(void * pvParamaters)
 		Error checking must be implemented to assure that the Message was sent to the appropriate queue with the vQueueSendtoBack().
 		*/
 		else if (readButton(SW0) == 1)
-		{
-			if (ledHandle[1] != NULL)
+		{/*
+			
+			if (controlLED1 != NULL)
 			{
-				vTaskSuspend(ledHandle[1]);
+				vTaskSuspend(controlLED1);
 			}
-			else if (ledHandle[2] != NULL)
+			else if (controlLED2 != NULL)
 			{
-				vTaskSuspend(ledHandle[2]);
+				vTaskSuspend(controlLED2);
 			}
-			else if (ledHandle[3] != NULL)
+			else if (controlLED3 != NULL)
 			{
-				vTaskSuspend(ledHandle[3]);
+				vTaskSuspend(controlLED3);
 			}
-			else if (ledHandle[1] == NULL)
+			else if (controlLED1 == NULL)
 			{
-				vTaskResume(ledHandle[1]);
+				vTaskResume(controlLED1);
 			}
-			else if (ledHandle[2] == NULL)
+			else if (controlLED2 == NULL)
 			{
-				vTaskResume(ledHandle[2]);
+				vTaskResume(controlLED2);
 			}
-			else if (ledHandle[3] == NULL)
+			else if (controlLED3 == NULL)
 			{
-				vTaskResume(ledHandle[3]);
-			}		
+				vTaskResume(controlLED3);
+			}		*/
 		
 		}
 		//delay for 100ms after all 3 switches
@@ -174,43 +187,51 @@ This should be bounded to a MAX delay of 1000ms and a MIN delay of 200ms.
 There will be three of these tasks as well. 
 The task should use your LED Driver from Lab 2.
 */
-int defaultMS = 500;	
-TickType_t xDelay = defaultMS / portTICK_PERIOD_MS;
 
-timeDelay getDelay;
+	struct ledStruct * controlParams = (struct ledStruct *) pvParameters;
+	QueueHandle_t ledQ = controlParams->ledQ;
+	QueueHandle_t uartQ = controlParams->uartQ;
+	uint8_t ledNum = controlParams->ledNum;
+	int defaultMS = 500;
+	TickType_t xDelay = defaultMS / portTICK_PERIOD_MS;
+
+	timeDelay getDelay;
 
 	while(true)
 	{
-		for(int i = 0; i < pvParameters; i++)
+		
+		toggleLED(ledNum+1);
+
+		
+		//this will go through the queue for each of the leds and either increase or decrease the delay
+
+		if(uxQueueMessagesWaiting(ledQ))
 		{
-			if(uxQueueMessagesWaiting(ledQ[i]))
+			//if the queue receive of queue handle[i] goes into &getDelay and it's == to pbTrue, increase or decrease
+			if (xQueueReceive(ledQ, &getDelay, 0))
 			{
-				//if the queue receive of queue handle[i] goes into &getDelay and it's == to pbTrue, increase or decrease
-				if (xQueueReceive(ledHandle[1], &getDelay, 0) == pbTRUE)
+				if(getDelay == DECREASE)
 				{
-					if(getDelay == DECREASE)
+					
+					xDelay = (defaultMS - 50) / portTICK_PERIOD_MS;
+					if(xDelay < 200)
 					{
-					
-						xDelay == (defaultMS - 50) / portTICK_PERIOD_MS;
-						if(xDelay < 200)
-						{
-							xDelay = 200;
-						}
-					
-					
+						xDelay = 200;
 					}
-					else if (getDelay == INCREASE)
+					
+					
+				}
+				else if (getDelay == INCREASE)
+				{
+					xDelay = (defaultMS + 50) / portTICK_PERIOD_MS;
+					if(xDelay == 1000)
 					{
-						xDelay == (defaultMS + 50) / portTICK_PERIOD_MS;
-						if(xDelay = 1000)
-						{
-							xDelay = 1000;
-						}
+						xDelay = 1000;
 					}
-				
 				}
 			}
 		}
+		vTaskDelay(xDelay);
 	}
 }
 
@@ -232,7 +253,7 @@ char tempUART[50];
 
 	while(true)
 	{
-		if(uxQueueMessagesWaiting(uartQ))
+		if(uxQueueMessagesWaiting(uartTempQueue))
 		{
 			if(xQueueReceive(uartTempQueue, &tempUART, portMAX_DELAY) == pdTRUE)
 				UARTPutStr(EDBG_UART, tempUART, sizeof(tempUART));

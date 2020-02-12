@@ -24,10 +24,4 @@ uint8_t initUART(Uart * pUart);
 void UARTPutC(Uart * pUart, char data);
 void UARTPutStr(Uart * pUart, char * data, uint8_t len);
 
-
-//uint8_t initUART(Uart * pUart);
-//initUART(EDBG_UART);
-//void UARTPutC(Uart * pUart, char data);
-
-
 #endif

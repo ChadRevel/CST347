@@ -40,8 +40,15 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 // Used to place the heap
 extern char _estack;
 
-char uartBuffer [50];
+//char uartBuffer [50];
+	
+char uartBuffer1D [50] = "queue LED1 decrease";
+char uartBuffer2D [50] = "queue LED2 decrease";
+char uartBuffer3D [50] = "queue LED3 decrease";
 
+char uartBuffer1I [50] = "queue LED1 increase";
+char uartBuffer2I [50] = "queue LED2 increase";
+char uartBuffer3I [50] = "queue LED3 increase";
 
 
 //////////////////////////////////////////////////
@@ -54,12 +61,12 @@ QueueHandle_t uartQ = NULL;
 
 //create the handles for the controlling the tasks
 TaskHandle_t ledHandle[3] = {NULL, NULL, NULL};
+TaskHandle_t controlHandle[3] = {NULL, NULL, NULL};
 TaskHandle_t uartHandle = NULL; 
-TaskHandle_t nextTask = NULL;
 
 
 
-	
+//make the structs within the structs	
 struct controlStruct controlLED1;
 struct controlStruct controlLED2;
 struct controlStruct controlLED3;
@@ -77,8 +84,8 @@ int main (void)
 	initializeButtonDriver();
 	initUART(EDBG_UART);
 	
-	const char* startText = "/r/n/r/n/r/nThis is Lab3/r/n/r/n/r/n";
-	UARTPutStr(EDBG_UART, startText, sizeof(startText));
+	char* startText = "This is Lab3";
+	UARTPutStr(EDBG_UART, startText, strlen(startText));
 	
 	
 	/*
@@ -92,44 +99,40 @@ int main (void)
 	*/
 
 	//create the queues for the handles
+	ledQ[0] = xQueueCreate(5, sizeof(currLED));
 	ledQ[1] = xQueueCreate(5, sizeof(currLED));
 	ledQ[2] = xQueueCreate(5, sizeof(currLED));
-	ledQ[3] = xQueueCreate(5, sizeof(currLED));
 	uartQ = xQueueCreate(5, sizeof(char[50]));
 
 
 	//create structs to be able to pass in the values around and not have everything set as a global variable
-	controlLED1.ledQ = ledQ[1];
+	controlLED1.ledQ = ledQ[0];
 	controlLED1.uartQ = uartQ;
-	controlLED1.ledHandle = ledHandle[1];
-	controlLED1.nextTask = nextTask;
+	controlLED1.ledHandle = ledHandle[0];
+	controlLED1.nextTask = controlHandle[1];
 	controlLED1.ledNum = LED1;
-	controlLED2.ledQ = ledQ[2];
+	controlLED2.ledQ = ledQ[1];
 	controlLED2.uartQ = uartQ;
-	controlLED2.ledHandle = ledHandle[2];
-	controlLED2.nextTask = nextTask;
+	controlLED2.ledHandle = ledHandle[1];
+	controlLED2.nextTask = controlHandle[2];
 	controlLED2.ledNum = LED2;
-	controlLED3.ledQ = ledQ[3];
+	controlLED3.ledQ = ledQ[2];
 	controlLED3.uartQ = uartQ;
-	controlLED3.ledHandle = ledHandle[3];
-	controlLED3.nextTask = nextTask;	
+	controlLED3.ledHandle = ledHandle[2];
+	controlLED3.nextTask = controlHandle[0];	
 	controlLED3.ledNum = LED3;
 	
-	//controlLED1 = {&ledQ[1], &uartQ, &ledHandle[1], nextTask, LED1};
-	//controlLED2 = {&ledQ[2], &uartQ, &ledHandle[2], nextTask, LED2};
-	//controlLED3 = {&ledQ[3], &uartQ, &ledHandle[3], nextTask, LED3};
-	LED1Struct.ledQ = ledQ[1];
+
+	LED1Struct.ledQ = ledQ[0];
 	LED1Struct.uartQ = uartQ;
 	LED1Struct.ledNum = LED1;
-	LED2Struct.ledQ = ledQ[2];
+	LED2Struct.ledQ = ledQ[1];
 	LED2Struct.uartQ = uartQ;
 	LED2Struct.ledNum = LED2;
-	LED3Struct.ledQ = ledQ[3];
+	LED3Struct.ledQ = ledQ[2];
 	LED3Struct.uartQ = uartQ;
 	LED3Struct.ledNum = LED3;
-	//LED1Struct = {&ledQ[1], &uartQ, LED1};
-	//LED2Struct = {&ledQ[2], &uartQ, LED2};
-	//LED3Struct = {&ledQ[3], &uartQ, LED3};
+
 	
 
 //need 3 led task creates as well
@@ -139,25 +142,19 @@ int main (void)
 	
 	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, &uartHandle, 1, NULL);
 	
+	xTaskCreate(taskLED, "LED 1 Task", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, 1, &ledHandle[0]);
+	xTaskCreate(taskLED, "LED 2 Task", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, 1, &ledHandle[1]);
+	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, 1, &ledHandle[2]);
 	//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
 	//not sure if still need these and the 2 suspends.
-	xTaskCreate(taskSystemControl, "Main Control Take 1 for LED1", configMINIMAL_STACK_SIZE, (void *) &controlLED1, 1, &ledHandle[1]);
-	xTaskCreate(taskSystemControl, "Main Control Take 2 for LED2", configMINIMAL_STACK_SIZE, (void *) &controlLED2, 1, &ledHandle[2]);
-	xTaskCreate(taskSystemControl, "Main Control Take 3 for LED3", configMINIMAL_STACK_SIZE, (void *) &controlLED3, 1, &ledHandle[3]);
+	xTaskCreate(taskSystemControl, "Main Control Task for LED1", configMINIMAL_STACK_SIZE, (void *) &controlLED1, 1, &controlHandle[0]);
+	xTaskCreate(taskSystemControl, "Main Control Task for LED2", configMINIMAL_STACK_SIZE, (void *) &controlLED2, 1, &controlHandle[1]);
+	xTaskCreate(taskSystemControl, "Main Control Task for LED3", configMINIMAL_STACK_SIZE, (void *) &controlLED3, 1, &controlHandle[2]);
 	
 	//now suspend the latter 2 tasks
-	vTaskSuspend(ledHandle[1]);
-	vTaskSuspend(ledHandle[2]);
+	vTaskSuspend(controlHandle[1]);
+	vTaskSuspend(controlHandle[2]);
 	
-	// Create a Task to Handle Button Press and Light LED
-	xTaskCreate(taskSystemControl,                       // Function Called by task
-	"My Button Task",                        // Task Name
-	configMINIMAL_STACK_SIZE,                // Task Stack Size
-	NULL,                                    // Any Parameters Passed to Task
-	1,                                       // Task Priority
-	NULL);                                   // Place to store Task Handle
-	
-
 	// Start The Scheduler
 	vTaskStartScheduler();
 

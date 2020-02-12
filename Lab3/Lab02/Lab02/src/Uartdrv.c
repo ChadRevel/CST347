@@ -20,7 +20,7 @@ The UARTPutC() will print a single byte (char) to the UART.
 The UARTPutStr() function will use the UARTPutC() to write a complete string to the UART.
 */
 
-uint8_t initUart(Uart * p_Uart)
+uint8_t initUART(Uart * p_Uart)
 {
 	uint32_t cd = 0;
 	uint8_t retVal = 0;
@@ -64,7 +64,7 @@ void UARTPutC(Uart * p_Uart, char data)
 {
 	// Wait for Transmitter to be Ready
 	while((p_Uart->UART_SR & UART_SR_TXRDY) == 0)
-	{p_Uart->UART_SR = data;}
+	{p_Uart->UART_THR = data;}
 
 }
 
