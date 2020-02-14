@@ -121,32 +121,9 @@ void taskSystemControl(void * pvParamaters)
 		Error checking must be implemented to assure that the Message was sent to the appropriate queue with the vQueueSendtoBack().
 		*/
 		else if (readButton(SW0) == 1)
-		{/*
+		{
+			//if ()
 			
-			if (controlLED1 != NULL)
-			{
-				vTaskSuspend(controlLED1);
-			}
-			else if (controlLED2 != NULL)
-			{
-				vTaskSuspend(controlLED2);
-			}
-			else if (controlLED3 != NULL)
-			{
-				vTaskSuspend(controlLED3);
-			}
-			else if (controlLED1 == NULL)
-			{
-				vTaskResume(controlLED1);
-			}
-			else if (controlLED2 == NULL)
-			{
-				vTaskResume(controlLED2);
-			}
-			else if (controlLED3 == NULL)
-			{
-				vTaskResume(controlLED3);
-			}		*/
 		
 		}
 		//delay for 100ms after all 3 switches
@@ -200,7 +177,7 @@ The task should use your LED Driver from Lab 2.
 	while(true)
 	{
 		
-		toggleLED(ledNum+1);
+		toggleLED(ledNum);
 
 		
 		//this will go through the queue for each of the leds and either increase or decrease the delay
