@@ -29,9 +29,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  12 .debug_line   0000b14f  00000000  00000000  00059800  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_str    0006981f  00000000  00000000  0006494f  2**0
+ 13 .debug_str    00069818  00000000  00000000  0006494f  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_frame  00001778  00000000  00000000  000ce170  2**2
+ 14 .debug_frame  00001778  00000000  00000000  000ce168  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -5220,7 +5220,6 @@ void taskSystemControl(void * pvParamaters)
   4022ba:	4912      	ldr	r1, [pc, #72]	; (402304 <taskSystemControl+0x68>)
   4022bc:	4630      	mov	r0, r6
   4022be:	47a8      	blx	r5
-			
 
 		
 		}
@@ -5334,35 +5333,35 @@ The task should use your LED Driver from Lab 2.
   402342:	4628      	mov	r0, r5
   402344:	4b0d      	ldr	r3, [pc, #52]	; (40237c <taskLED+0x4c>)
   402346:	4798      	blx	r3
-		toggleLED(ledNum+1);
-  402348:	1c70      	adds	r0, r6, #1
-  40234a:	b2c0      	uxtb	r0, r0
-  40234c:	4b0c      	ldr	r3, [pc, #48]	; (402380 <taskLED+0x50>)
-  40234e:	4798      	blx	r3
+		toggleLED(ledNum);
+  402348:	4630      	mov	r0, r6
+  40234a:	4b0d      	ldr	r3, [pc, #52]	; (402380 <taskLED+0x50>)
+  40234c:	4798      	blx	r3
 		if(uxQueueMessagesWaiting(ledQ))
-  402350:	4620      	mov	r0, r4
-  402352:	4b0c      	ldr	r3, [pc, #48]	; (402384 <taskLED+0x54>)
-  402354:	4798      	blx	r3
-  402356:	2800      	cmp	r0, #0
-  402358:	d0f3      	beq.n	402342 <taskLED+0x12>
+  40234e:	4620      	mov	r0, r4
+  402350:	4b0c      	ldr	r3, [pc, #48]	; (402384 <taskLED+0x54>)
+  402352:	4798      	blx	r3
+  402354:	2800      	cmp	r0, #0
+  402356:	d0f4      	beq.n	402342 <taskLED+0x12>
 			if (xQueueReceive(ledQ, &getDelay, 0))
-  40235a:	2200      	movs	r2, #0
-  40235c:	f10d 0107 	add.w	r1, sp, #7
-  402360:	4620      	mov	r0, r4
-  402362:	4b09      	ldr	r3, [pc, #36]	; (402388 <taskLED+0x58>)
-  402364:	4798      	blx	r3
-  402366:	2800      	cmp	r0, #0
-  402368:	d0eb      	beq.n	402342 <taskLED+0x12>
+  402358:	2200      	movs	r2, #0
+  40235a:	f10d 0107 	add.w	r1, sp, #7
+  40235e:	4620      	mov	r0, r4
+  402360:	4b09      	ldr	r3, [pc, #36]	; (402388 <taskLED+0x58>)
+  402362:	4798      	blx	r3
+  402364:	2800      	cmp	r0, #0
+  402366:	d0ec      	beq.n	402342 <taskLED+0x12>
 				if(getDelay == DECREASE)
-  40236a:	f89d 3007 	ldrb.w	r3, [sp, #7]
-  40236e:	2b01      	cmp	r3, #1
-  402370:	d0e5      	beq.n	40233e <taskLED+0xe>
+  402368:	f89d 3007 	ldrb.w	r3, [sp, #7]
+  40236c:	2b01      	cmp	r3, #1
+  40236e:	d0e6      	beq.n	40233e <taskLED+0xe>
 				else if (getDelay == INCREASE)
-  402372:	2b00      	cmp	r3, #0
-  402374:	d1e5      	bne.n	402342 <taskLED+0x12>
+  402370:	2b00      	cmp	r3, #0
+  402372:	d1e6      	bne.n	402342 <taskLED+0x12>
 					xDelay = (defaultMS + 50) / portTICK_PERIOD_MS;
-  402376:	f240 2526 	movw	r5, #550	; 0x226
-  40237a:	e7e2      	b.n	402342 <taskLED+0x12>
+  402374:	f240 2526 	movw	r5, #550	; 0x226
+  402378:	e7e3      	b.n	402342 <taskLED+0x12>
+  40237a:	bf00      	nop
   40237c:	00401721 	.word	0x00401721
   402380:	004021c1 	.word	0x004021c1
   402384:	00400fc5 	.word	0x00400fc5

@@ -122,8 +122,6 @@ void taskSystemControl(void * pvParamaters)
 		*/
 		else if (readButton(SW0) == 1)
 		{
-			
-
 		
 		}
 		//delay for 100ms after all 3 switches
@@ -177,7 +175,7 @@ The task should use your LED Driver from Lab 2.
 	while(true)
 	{
 		
-		toggleLED(ledNum+1);
+		toggleLED(ledNum);
 
 		
 		//this will go through the queue for each of the leds and either increase or decrease the delay
