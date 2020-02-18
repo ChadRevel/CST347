@@ -121,32 +121,9 @@ void taskSystemControl(void * pvParamaters)
 		Error checking must be implemented to assure that the Message was sent to the appropriate queue with the vQueueSendtoBack().
 		*/
 		else if (readButton(SW0) == 1)
-		{/*
+		{
 			
-			if (controlLED1 != NULL)
-			{
-				vTaskSuspend(controlLED1);
-			}
-			else if (controlLED2 != NULL)
-			{
-				vTaskSuspend(controlLED2);
-			}
-			else if (controlLED3 != NULL)
-			{
-				vTaskSuspend(controlLED3);
-			}
-			else if (controlLED1 == NULL)
-			{
-				vTaskResume(controlLED1);
-			}
-			else if (controlLED2 == NULL)
-			{
-				vTaskResume(controlLED2);
-			}
-			else if (controlLED3 == NULL)
-			{
-				vTaskResume(controlLED3);
-			}		*/
+
 		
 		}
 		//delay for 100ms after all 3 switches

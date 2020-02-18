@@ -5220,8 +5220,8 @@ void taskSystemControl(void * pvParamaters)
   4022ba:	4912      	ldr	r1, [pc, #72]	; (402304 <taskSystemControl+0x68>)
   4022bc:	4630      	mov	r0, r6
   4022be:	47a8      	blx	r5
-				vTaskResume(controlLED3);
-			}		*/
+			
+
 		
 		}
 		//delay for 100ms after all 3 switches
