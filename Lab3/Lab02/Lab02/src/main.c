@@ -40,16 +40,18 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 // Used to place the heap
 extern char _estack;
 
-//char uartBuffer [50];
 	
-char uartBuffer1D [50] = "queue LED1 decrease";
-char uartBuffer2D [50] = "queue LED2 decrease";
-char uartBuffer3D [50] = "queue LED3 decrease";
+const char* uartBuffer1D = "queue LED1 decrease\r\n";
+const char* uartBuffer2D = "queue LED2 decrease\r\n";
+const char* uartBuffer3D = "queue LED3 decrease\r\n";
 
-char uartBuffer1I [50] = "queue LED1 increase";
-char uartBuffer2I [50] = "queue LED2 increase";
-char uartBuffer3I [50] = "queue LED3 increase";
+const char* uartBuffer1I = "queue LED1 increase\r\n";
+const char* uartBuffer2I = "queue LED2 increase\r\n";
+const char* uartBuffer3I = "queue LED3 increase\r\n";
 
+const char* uartBuffer1A = "LED 1 IS NOW ACTIVE\r\n";
+const char* uartBuffer2A = "LED 2 IS NOW ACTIVE\r\n";
+const char* uartBuffer3A = "LED 3 IS NOW ACTIVE\r\n";
 
 //////////////////////////////////////////////////
 //lab 3 part
@@ -84,8 +86,8 @@ int main (void)
 	initializeButtonDriver();
 	initUART(EDBG_UART);
 	
-	char* startText = "This is Lab3";
-	UARTPutStr(EDBG_UART, startText, strlen(startText));
+	const char* startText = "This is Lab3\r\n";
+	UARTPutStr(EDBG_UART, startText, 0);
 	
 	
 	/*
@@ -99,9 +101,9 @@ int main (void)
 	*/
 
 	//create the queues for the handles
-	ledQ[0] = xQueueCreate(5, sizeof(currLED));
-	ledQ[1] = xQueueCreate(5, sizeof(currLED));
-	ledQ[2] = xQueueCreate(5, sizeof(currLED));
+	ledQ[0] = xQueueCreate(5, sizeof(timeDelay));
+	ledQ[1] = xQueueCreate(5, sizeof(timeDelay));
+	ledQ[2] = xQueueCreate(5, sizeof(timeDelay));
 	uartQ = xQueueCreate(5, sizeof(char[50]));
 
 
@@ -109,17 +111,17 @@ int main (void)
 	controlLED1.ledQ = ledQ[0];
 	controlLED1.uartQ = uartQ;
 	controlLED1.ledHandle = ledHandle[0];
-	controlLED1.nextTask = controlHandle[1];
+	controlLED1.nextTask = &controlHandle[1];
 	controlLED1.ledNum = LED1;
 	controlLED2.ledQ = ledQ[1];
 	controlLED2.uartQ = uartQ;
 	controlLED2.ledHandle = ledHandle[1];
-	controlLED2.nextTask = controlHandle[2];
+	controlLED2.nextTask = &controlHandle[2];
 	controlLED2.ledNum = LED2;
 	controlLED3.ledQ = ledQ[2];
 	controlLED3.uartQ = uartQ;
 	controlLED3.ledHandle = ledHandle[2];
-	controlLED3.nextTask = controlHandle[0];	
+	controlLED3.nextTask = &controlHandle[0];	
 	controlLED3.ledNum = LED3;
 	
 

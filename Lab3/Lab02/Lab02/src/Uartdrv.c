@@ -63,17 +63,22 @@ uint8_t initUART(Uart * p_Uart)
 void UARTPutC(Uart * p_Uart, char data)
 {
 	// Wait for Transmitter to be Ready
-	while((p_Uart->UART_SR & UART_SR_TXRDY) == 0)
-	{p_Uart->UART_THR = data;}
+	while((p_Uart->UART_SR & UART_SR_TXRDY) == 0);
+	p_Uart->UART_THR = data;
 
 }
 
-void UARTPutStr(Uart * p_Uart, char * data, uint8_t len)
+void UARTPutStr(Uart * p_Uart, const char * data, uint8_t len)
 {
 	//call the vUARTPutC();
-	for (int i = 0; i < len; i++)
+	//for (int i = 0; i < len; i++)
+	//{
+		//UARTPutC(p_Uart, data[i]);
+	//}
+	while (*data != '\0')
 	{
-		UARTPutC(p_Uart, data[i]);
+		UARTPutC(p_Uart, *data);
+		data++;
 	}
 	
 }
