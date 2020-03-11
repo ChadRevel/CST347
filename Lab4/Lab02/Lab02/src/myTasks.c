@@ -16,21 +16,51 @@
 const TickType_t xDelay2 = 1000 / portTICK_PERIOD_MS;
 const TickType_t xDelay3 = 100 / portTICK_PERIOD_MS;
 
-extern char uartBuffer1D [50];
-extern char uartBuffer2D [50];
-extern char uartBuffer3D [50];
+extern const char* uartBuffer1D;
+extern const char* uartBuffer2D;
+extern const char* uartBuffer3D;
 
-extern char uartBuffer1I [50];
-extern char uartBuffer2I [50];
-extern char uartBuffer3I [50]; 
+extern const char* uartBuffer1I;
+extern const char* uartBuffer2I;
+extern const char* uartBuffer3I; 
 
+extern const char* uartBuffer1A;
+extern const char* uartBuffer2A;
+extern const char* uartBuffer3A;
 
+extern const char* uartBufferMainStart;
+extern const char* uartBufferMainControl;
+extern const char* uartBufferMainBlock;
+
+extern const char* uartBuffer1Start;
+extern const char* uartBuffer2Start;
+extern const char* uartBuffer3Start;
+
+extern const char* uartBuffer1Block;
+extern const char* uartBuffer1Block;
+extern const char* uartBuffer1Block;
+
+//This is the main control for the task system
 void taskSystemControl(void * pvParamaters)
 {
+	//only suppose to be 1 MainControl task here for lab 4.
+	/*
+	“MainControl” Task – Poll button switches and perform the following actions. As with lab 3,
+	the button switches need to be debounced and a lockout scheme should be implemented.
+	All the hardware considerations from the previous labs apply. 
+	*/
+	
+	/*
+	OTHER MODIFICATIONS AND CONSIDERATIONS – “MainControl” will no longer send a message to the UART
+	task announcing which LED is active based on SW0. Instead, it will send a message only to announce
+	that it (“MainControl” task) is running. To do this, a vQueueSendToBack() message is sent to the UART queue
+	at the top of the while(1) loop to announce “MainControl Starting” and right before it does the end-of-loop vTaskDelay()
+	with “MainControl Blocking”.
+	*/
 	struct controlStruct * controlParams = (struct controlStruct *) pvParamaters;
 	QueueHandle_t ledQueueParam = controlParams->ledQ;
 	QueueHandle_t uartQueueParam = controlParams->uartQ;
-	TaskHandle_t nextTaskHandleParam = controlParams->nextTask;
+	TaskHandle_t nextTaskHandleParam = *controlParams->nextTask;
 	uint8_t ledParam = controlParams->ledNum;
                
 	//declaration for either increasing or decreasing the speed			                     
@@ -38,6 +68,10 @@ void taskSystemControl(void * pvParamaters)
 
 	while (true)
 	{
+		//first send out a message saying that the main control is starting
+		xQueueSendToBack(uartQueueParam, uartBufferMainStart, (TickType_t) 0);	
+		
+		
 		//the first case will be for sw1
 		//it will create the task for each of the leds.
 		/*
@@ -49,25 +83,9 @@ void taskSystemControl(void * pvParamaters)
 		*/
 		if (readButton(SW1) == 1)
 		{
-			//led1
-			
 				//send led1 back to the end of the queue
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 0);
-				xQueueSendToBack(uartQueueParam, (void *) uartBuffer1D, (TickType_t) 0);
-			
-			//led2
-			
-				//send led2 back to the end of the queue
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 0);
-				xQueueSendToBack(uartQueueParam, (void *) uartBuffer2D, (TickType_t) 0);
-			
-			//led3
-			
-				//send led3 back to the end of the queue
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 0);
-				xQueueSendToBack(uartQueueParam, (void *) uartBuffer3D, (TickType_t) 0);
-			
-				
+				incDec = DECREASE;
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
 		}
 
 		//if sw 2 is pressed, then check each led from the highest led to the lowest, then delete the task
@@ -79,25 +97,9 @@ void taskSystemControl(void * pvParamaters)
 		*/
 		else if (readButton(SW2) == 1)
 		{
-			//led1
-			
+				incDec = INCREASE;
 				//send led1 back to the end of the queue
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 1);
-				xQueueSendToBack(uartQueueParam, (void *) uartBuffer1I, (TickType_t) 0);
-			
-			//led2
-			
-				//send led2 back to the end of the queue
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 1);
-				xQueueSendToBack(uartQueueParam, (void *) uartBuffer2I, (TickType_t) 0);
-			
-			//led3
-			
-				//send led3 back to the end of the queue
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 1);
-				xQueueSendToBack(uartQueueParam, (void *) uartBuffer3I, (TickType_t) 0);
-			
-
+				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
 		}
 
 		//For the on board switch, if it's pressed, then suspend, or release the leds
@@ -114,25 +116,42 @@ void taskSystemControl(void * pvParamaters)
 		After all three switches have been polled, the task will perform a vTaskDelay() for 100ms.
 		Error checking must be implemented to assure that the Message was sent to the appropriate queue with the vQueueSendtoBack().
 		*/
+		
+
 		else if (readButton(SW0) == 1)
 		{
-			
+			if(ledParam == LED1)
+			{
+				xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);				
+			}
+			else if(ledParam == LED2)
+			{
+				xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
+			}
+			else if(ledParam == LED3)
+			{
+				xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
+			}
+			vTaskResume(nextTaskHandleParam);
+			vTaskSuspend(NULL);
 		}
+		//tell uart that the maincontrol is now blocking
+		xQueueSendToBack(uartQueueParam, uartBufferMainBlock, (TickType_t) 0);
+		
 		//delay for 100ms after all 3 switches
 		vTaskDelay(xDelay3);
 	}
 
 }
-		
+	
+//this is the heartbeat task to have led 0 blink		
 void taskHeartBeat (void * pvParamaters)		
 {
 /*
-The heartbeat task will be responsible for toggling the onboard LED every second.
+The heartbeat task will be responsible for toggling the on-board LED every second.
 This will give you a visual clue that the FreeRTOS system is still running.
 */	
-	
-	//set up the LedNumber for the parameters
-	uint32_t ledNum = (uint32_t) pvParamaters;
+
 	//this is the heartbeat for LED 0 to happen once every second
 	while (true)
 	{
@@ -143,8 +162,10 @@ This will give you a visual clue that the FreeRTOS system is still running.
 		
 }
 
+
 void taskLED(void * pvParameters)
 {
+	//from lab 3
 /*
 The LED tasks will blink the corresponding LED on and off. 
 It will do this at an initial rate of 500ms. 
@@ -155,6 +176,14 @@ The action will be either to increase or decrease the delay time in increments o
 This should be bounded to a MAX delay of 1000ms and a MIN delay of 200ms. 
 There will be three of these tasks as well. 
 The task should use your LED Driver from Lab 2.
+*/
+
+//from lab 4
+/*
+LED Task – The LED task will function in the same way as it did in Lab 3.
+This means the task will use xQueueMessagesWaiting() and xQueueReceive() to receive timing change messages.
+The one change here is that the LED task will now announce that it is active versus “MainControl” task as in lab 3. As in “MainControl”,
+at the top of the while(1) and right before the vTaskDelay(), LED task will call vQueueSendtoBack() to announce “LED N Starting” and “LED N Blocking”.
 */
 
 	struct ledStruct * controlParams = (struct ledStruct *) pvParameters;
@@ -179,9 +208,21 @@ The task should use your LED Driver from Lab 2.
 			//if the queue receive of queue handle[i] goes into &getDelay and it's == to pbTrue, increase or decrease
 			if (xQueueReceive(ledQ, &getDelay, 0))
 			{
+
 				if(getDelay == DECREASE)
 				{
-					
+					if (ledNum == LED1)
+					{
+						xQueueSendToBack(uartQ, uartBuffer1D, (TickType_t) 0);
+					}
+					else if (ledNum == LED2)
+					{
+						xQueueSendToBack(uartQ, uartBuffer2D, (TickType_t) 0);
+					}
+					else if (ledNum == LED3)
+					{
+						xQueueSendToBack(uartQ, uartBuffer3D, (TickType_t) 0);
+					}
 					xDelay = (defaultMS - 50) / portTICK_PERIOD_MS;
 					if(xDelay < 200)
 					{
@@ -190,8 +231,21 @@ The task should use your LED Driver from Lab 2.
 					
 					
 				}
+
 				else if (getDelay == INCREASE)
 				{
+					if (ledNum == LED1)
+					{
+						xQueueSendToBack(uartQ, uartBuffer1I, (TickType_t) 0);
+					}
+					else if (ledNum == LED2)
+					{
+						xQueueSendToBack(uartQ, uartBuffer2I, (TickType_t) 0);
+					}
+					else if (ledNum == LED3)
+					{
+						xQueueSendToBack(uartQ, uartBuffer3I, (TickType_t) 0);
+					}
 					xDelay = (defaultMS + 50) / portTICK_PERIOD_MS;
 					if(xDelay == 1000)
 					{
@@ -216,7 +270,7 @@ The initUART() function will initialize the UART. The UARTPutC() will print a si
 The UARTPutStr() function will use the UARTPutC() to write a complete string to the UART.
 */	
 
-QueueHandle_t uartTempQueue = (QueueHandle_t*) pvParameters;
+QueueHandle_t uartTempQueue = (QueueHandle_t) pvParameters;
 
 char tempUART[50];
 
@@ -224,8 +278,8 @@ char tempUART[50];
 	{
 		if(uxQueueMessagesWaiting(uartTempQueue))
 		{
-			if(xQueueReceive(uartTempQueue, &tempUART, portMAX_DELAY) == pdTRUE)
-				UARTPutStr(EDBG_UART, tempUART, sizeof(tempUART));
+			xQueueReceive(uartTempQueue, &tempUART, portMAX_DELAY);
+			UARTPutStr(EDBG_UART, tempUART, sizeof(tempUART));
 		}
 	}
 }

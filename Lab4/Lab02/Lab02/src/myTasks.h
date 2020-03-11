@@ -16,10 +16,10 @@
 #include "myDefines.h"
 
 //create structs for the globals
-typedef struct controlStruct{QueueHandle_t ledQ; QueueHandle_t uartQ; TaskHandle_t ledHandle; TaskHandle_t nextTask; uint8_t ledNum;}controlStruct;
+typedef struct controlStruct{QueueHandle_t ledQ; QueueHandle_t uartQ; TaskHandle_t ledHandle; TaskHandle_t * nextTask; uint8_t ledNum;}controlStruct;
 typedef struct ledStruct{QueueHandle_t ledQ; QueueHandle_t uartQ; uint8_t ledNum;}ledStruct;
 	
-typedef enum currLED {LED1, LED2, LED3} currLED;
+//typedef enum currLED {LED1, LED2, LED3} currLED;
 typedef enum timeDelay {INCREASE, DECREASE} timeDelay;
 
 
