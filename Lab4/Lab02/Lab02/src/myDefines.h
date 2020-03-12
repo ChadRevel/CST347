@@ -24,11 +24,13 @@
 #define SW1		1
 #define SW2		2
 
-#define heartbeatPriority	1
-#define uartControlPriority 2
-#define mainControlPriority 3
-#define led1ControlPriority 4
-#define led2ControlPriority 4
-#define led3ControlPriority 4
+#define heartbeatPriority		1
+#define uartControlPriority		2
+#define mainControlPriority		3
+#define led1ControlPriority		4
+#define led2ControlPriority		4
+#define led3ControlPriority		4
+
+#define maxSWDebounce	5
 
 #endif

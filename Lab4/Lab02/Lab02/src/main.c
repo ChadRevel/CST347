@@ -67,10 +67,6 @@ const char* uartBuffer2Block = "LED 2 IS NOW BLOCKING\r\n";
 const char* uartBuffer3Block = "LED 3 IS NOW BLOCKING\r\n";
 
 
-
-//////////////////////////////////////////////////
-//lab 3 part
-
 //create the 3 queue handles for controlling the queues
 QueueHandle_t ledQ[3] = {NULL, NULL, NULL};
 QueueHandle_t uartQ = NULL;
@@ -78,57 +74,20 @@ QueueHandle_t uartQ = NULL;
 
 //create the handles for the controlling the tasks
 TaskHandle_t ledHandle[3] = {NULL, NULL, NULL};
-//TaskHandle_t controlHandle[3] = {NULL, NULL, NULL};
+TaskHandle_t controlHandle[3] = {NULL, NULL, NULL};
 TaskHandle_t uartHandle = NULL; 
 
 
 
 //make the structs within the structs	
-struct controlStruct controlLED1;
-struct controlStruct controlLED2;
-struct controlStruct controlLED3;
+struct controlStruct controlLED;
+
 	
 struct ledStruct LED1Struct;
 struct ledStruct LED2Struct;
 struct ledStruct LED3Struct;
-	
-	
-//lab 4 structs within a struct
-struct mainControlStruct 
-{
-	//create structs to be able to pass in the values around and not have everything set as a global variable
-	controlLED1.ledQ = ledQ[0];
-	controlLED1.uartQ = uartQ;
-	controlLED1.ledHandle = ledHandle[0];
-	controlLED1.nextTask = &controlHandle[1];
-	controlLED1.ledNum = LED1;
-	controlLED2.ledQ = ledQ[1];
-	controlLED2.uartQ = uartQ;
-	controlLED2.ledHandle = ledHandle[1];
-	controlLED2.nextTask = &controlHandle[2];
-	controlLED2.ledNum = LED2;
-	controlLED3.ledQ = ledQ[2];
-	controlLED3.uartQ = uartQ;
-	controlLED3.ledHandle = ledHandle[2];
-	controlLED3.nextTask = &controlHandle[0];
-	controlLED3.ledNum = LED3;
-		
-	LED1Struct.ledQ = ledQ[0];
-	LED1Struct.uartQ = uartQ;
-	LED1Struct.ledNum = LED1;
-	LED2Struct.ledQ = ledQ[1];
-	LED2Struct.uartQ = uartQ;
-	LED2Struct.ledNum = LED2;
-	LED3Struct.ledQ = ledQ[2];
-	LED3Struct.uartQ = uartQ;
-	LED3Struct.ledNum = LED3;
 
-};	
 
-struct mainControlHandle
-{
-	TaskHandle_t controlHandle[3] = {NULL, NULL, NULL};
-};
 
 int main (void)
 {
@@ -138,10 +97,9 @@ int main (void)
 	initializeButtonDriver();
 	initUART(EDBG_UART);
 	
-	const char* startText = "This is Lab3\r\n";
+	const char* startText = "This is Lab4\r\n";
 	UARTPutStr(EDBG_UART, startText, 0);
-	
-	
+
 	/*
 	The MainControl task will poll the status of all three switches (just as we did in lab 2). 
 	The switches should be debounced with a three stage strategy: 
@@ -175,19 +133,16 @@ int main (void)
 	//controlLED3.ledHandle = ledHandle[2];
 	//controlLED3.nextTask = &controlHandle[0];	
 	//controlLED3.ledNum = LED3;
-	//
-	//LED1Struct.ledQ = ledQ[0];
-	//LED1Struct.uartQ = uartQ;
-	//LED1Struct.ledNum = LED1;
-	//LED2Struct.ledQ = ledQ[1];
-	//LED2Struct.uartQ = uartQ;
-	//LED2Struct.ledNum = LED2;
-	//LED3Struct.ledQ = ledQ[2];
-	//LED3Struct.uartQ = uartQ;
-	//LED3Struct.ledNum = LED3;
-
-
-	//for lab 4's control settings
+	
+	LED1Struct.ledQ = ledQ[0];
+	LED1Struct.uartQ = uartQ;
+	LED1Struct.ledNum = LED1;
+	LED2Struct.ledQ = ledQ[1];
+	LED2Struct.uartQ = uartQ;
+	LED2Struct.ledNum = LED2;
+	LED3Struct.ledQ = ledQ[2];
+	LED3Struct.uartQ = uartQ;
+	LED3Struct.ledNum = LED3;
 	
 
 //need 3 led task creates as well
@@ -202,16 +157,9 @@ int main (void)
 	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, 1, &ledHandle[2]);
 	//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
 
-//for lab 4, we'll only need 1 create task and it will all be based off of sw0 to go through each led
-	xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &mainControlStruct, 1, &mainControlHandle);
+	//for lab 4, we'll only need 1 create task and it will all be based off of sw0 to go through each led
+	xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &controlLED, 1, &controlHandle[0]);
 
-	//xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &controlLED1, 1, &controlHandle[0]);
-	//xTaskCreate(taskSystemControl, "Main Control Task for LED2", configMINIMAL_STACK_SIZE, (void *) &controlLED2, 1, &controlHandle[1]);
-	//xTaskCreate(taskSystemControl, "Main Control Task for LED3", configMINIMAL_STACK_SIZE, (void *) &controlLED3, 1, &controlHandle[2]);
-	
-	//now suspend the latter 2 tasks
-	//vTaskSuspend(controlHandle[1]);
-	//vTaskSuspend(controlHandle[2]);
 	
 	// Start The Scheduler
 	vTaskStartScheduler();

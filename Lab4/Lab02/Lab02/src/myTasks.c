@@ -16,6 +16,8 @@
 const TickType_t xDelay2 = 1000 / portTICK_PERIOD_MS;
 const TickType_t xDelay3 = 100 / portTICK_PERIOD_MS;
 
+int SW_Debounce = 0;
+
 extern const char* uartBuffer1D;
 extern const char* uartBuffer2D;
 extern const char* uartBuffer3D;
@@ -37,8 +39,8 @@ extern const char* uartBuffer2Start;
 extern const char* uartBuffer3Start;
 
 extern const char* uartBuffer1Block;
-extern const char* uartBuffer1Block;
-extern const char* uartBuffer1Block;
+extern const char* uartBuffer2Block;
+extern const char* uartBuffer3Block;
 
 //This is the main control for the task system
 void taskSystemControl(void * pvParamaters)
@@ -58,16 +60,16 @@ void taskSystemControl(void * pvParamaters)
 	with “MainControl Blocking”.
 	*/
 	struct controlStruct * controlParams = (struct controlStruct *) pvParamaters;
-	QueueHandle_t ledQueueParam = controlParams->ledQ;
+	QueueHandle_t ledQueueParam = controlParams->ledQ[3];
 	QueueHandle_t uartQueueParam = controlParams->uartQ;
-	TaskHandle_t nextTaskHandleParam = *controlParams->nextTask;
-	uint8_t ledParam = controlParams->ledNum;
+
                
 	//declaration for either increasing or decreasing the speed			                     
 	enum timeDelay incDec;
 
 	while (true)
 	{
+		int structCounter = 0;
 		//first send out a message saying that the main control is starting
 		xQueueSendToBack(uartQueueParam, uartBufferMainStart, (TickType_t) 0);	
 		
@@ -83,9 +85,14 @@ void taskSystemControl(void * pvParamaters)
 		*/
 		if (readButton(SW1) == 1)
 		{
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
+			{
+				SW_Debounce = 0;
 				//send led1 back to the end of the queue
 				incDec = DECREASE;
 				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
+			}
 		}
 
 		//if sw 2 is pressed, then check each led from the highest led to the lowest, then delete the task
@@ -97,9 +104,14 @@ void taskSystemControl(void * pvParamaters)
 		*/
 		else if (readButton(SW2) == 1)
 		{
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
+			{
+				SW_Debounce = 0;
 				incDec = INCREASE;
 				//send led1 back to the end of the queue
 				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
+			}
 		}
 
 		//For the on board switch, if it's pressed, then suspend, or release the leds
@@ -120,20 +132,26 @@ void taskSystemControl(void * pvParamaters)
 
 		else if (readButton(SW0) == 1)
 		{
-			if(ledParam == LED1)
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
 			{
-				xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);				
+				SW_Debounce = 0;
+				
+				if(ledQueueParam = LED1)
+				{
+					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);				
+				}
+				else if(ledQueueParam = LED2)
+				{
+					//xTaskCreate(taskSystemControl, "Main Control is running", configMINIMAL_STACK_SIZE, (void *) &controlLED, 1, &controlHandle[1]);
+					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
+				}
+				else if(ledQueueParam = LED3)
+				{
+					//xTaskCreate(taskSystemControl, "Main Control in running", configMINIMAL_STACK_SIZE, (void *) &controlLED, 1, &controlHandle[2]);
+					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
+				}
 			}
-			else if(ledParam == LED2)
-			{
-				xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
-			}
-			else if(ledParam == LED3)
-			{
-				xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
-			}
-			vTaskResume(nextTaskHandleParam);
-			vTaskSuspend(NULL);
 		}
 		//tell uart that the maincontrol is now blocking
 		xQueueSendToBack(uartQueueParam, uartBufferMainBlock, (TickType_t) 0);
@@ -181,7 +199,7 @@ The task should use your LED Driver from Lab 2.
 //from lab 4
 /*
 LED Task – The LED task will function in the same way as it did in Lab 3.
-This means the task will use xQueueMessagesWaiting() and xQueueReceive() to receive timing change messages.
+This means the task will use uxQueueMessagesWaiting() and xQueueReceive() to receive timing change messages.
 The one change here is that the LED task will now announce that it is active versus “MainControl” task as in lab 3. As in “MainControl”,
 at the top of the while(1) and right before the vTaskDelay(), LED task will call vQueueSendtoBack() to announce “LED N Starting” and “LED N Blocking”.
 */
