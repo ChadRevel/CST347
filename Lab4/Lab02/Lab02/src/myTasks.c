@@ -137,19 +137,20 @@ void taskSystemControl(void * pvParamaters)
 			{
 				SW_Debounce = 0;
 				
-				if(ledQueueParam = LED1)
+				if(ledQueueParam = structCounter)
 				{
 					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);				
+					structCounter++;
 				}
-				else if(ledQueueParam = LED2)
+				else if(ledQueueParam = structCounter)
 				{
-					//xTaskCreate(taskSystemControl, "Main Control is running", configMINIMAL_STACK_SIZE, (void *) &controlLED, 1, &controlHandle[1]);
 					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
+					structCounter++;
 				}
-				else if(ledQueueParam = LED3)
+				else if(ledQueueParam = structCounter)
 				{
-					//xTaskCreate(taskSystemControl, "Main Control in running", configMINIMAL_STACK_SIZE, (void *) &controlLED, 1, &controlHandle[2]);
 					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
+					structCounter = 0;
 				}
 			}
 		}
