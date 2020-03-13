@@ -27,10 +27,10 @@
 #define heartbeatPriority		1
 #define uartControlPriority		2
 #define mainControlPriority		3
-#define led1ControlPriority		4
-#define led2ControlPriority		4
+#define led1ControlPriority		6
+#define led2ControlPriority		5
 #define led3ControlPriority		4
 
-#define maxSWDebounce	5
+#define maxSWDebounce	1 // this number * 100 ms = total debounce time
 
 #endif

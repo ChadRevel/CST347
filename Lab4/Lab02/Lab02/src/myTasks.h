@@ -27,6 +27,7 @@ void taskSystemControl(void * pvParamaters);
 void taskHeartBeat (void * pvParamaters);
 void taskLED(void * pvParameters);
 void taskUART (void* pvParameters);
+void modifiedLEDTask(void *pvParameters);
 
 
 

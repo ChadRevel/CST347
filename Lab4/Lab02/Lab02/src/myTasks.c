@@ -31,7 +31,6 @@ extern const char* uartBuffer2A;
 extern const char* uartBuffer3A;
 
 extern const char* uartBufferMainStart;
-extern const char* uartBufferMainControl;
 extern const char* uartBufferMainBlock;
 
 extern const char* uartBuffer1Start;
@@ -41,6 +40,8 @@ extern const char* uartBuffer3Start;
 extern const char* uartBuffer1Block;
 extern const char* uartBuffer2Block;
 extern const char* uartBuffer3Block;
+
+uint8_t currLED = LED1;
 
 //This is the main control for the task system
 void taskSystemControl(void * pvParamaters)
@@ -59,17 +60,21 @@ void taskSystemControl(void * pvParamaters)
 	at the top of the while(1) loop to announce “MainControl Starting” and right before it does the end-of-loop vTaskDelay()
 	with “MainControl Blocking”.
 	*/
+	
+	
 	struct controlStruct * controlParams = (struct controlStruct *) pvParamaters;
-	QueueHandle_t ledQueueParam = controlParams->ledQ[3];
+	QueueHandle_t ledQueueParam[3];
+	ledQueueParam[0] = controlParams->ledQ[0];
+	ledQueueParam[1] = controlParams->ledQ[1];
+	ledQueueParam[2] = controlParams->ledQ[2];
 	QueueHandle_t uartQueueParam = controlParams->uartQ;
-
                
 	//declaration for either increasing or decreasing the speed			                     
 	enum timeDelay incDec;
 
 	while (true)
 	{
-		int structCounter = 0;
+		
 		//first send out a message saying that the main control is starting
 		xQueueSendToBack(uartQueueParam, uartBufferMainStart, (TickType_t) 0);	
 		
@@ -91,7 +96,7 @@ void taskSystemControl(void * pvParamaters)
 				SW_Debounce = 0;
 				//send led1 back to the end of the queue
 				incDec = DECREASE;
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
+				xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
 			}
 		}
 
@@ -110,7 +115,7 @@ void taskSystemControl(void * pvParamaters)
 				SW_Debounce = 0;
 				incDec = INCREASE;
 				//send led1 back to the end of the queue
-				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
+				xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
 			}
 		}
 
@@ -136,22 +141,21 @@ void taskSystemControl(void * pvParamaters)
 			else
 			{
 				SW_Debounce = 0;
+				switch(currLED)
+				{
+					case LED1:
+						currLED = LED2;
+						break;
+					case LED2:
+						currLED = LED3;
+						break;
+					case LED3:
+						currLED = LED1;
+						break;
+					default:
+						break;
+				}
 				
-				if(ledQueueParam = structCounter)
-				{
-					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);				
-					structCounter++;
-				}
-				else if(ledQueueParam = structCounter)
-				{
-					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
-					structCounter++;
-				}
-				else if(ledQueueParam = structCounter)
-				{
-					xQueueSendToBack(uartQueueParam, uartBufferMainControl, (TickType_t) 0);
-					structCounter = 0;
-				}
 			}
 		}
 		//tell uart that the maincontrol is now blocking
@@ -184,18 +188,6 @@ This will give you a visual clue that the FreeRTOS system is still running.
 
 void taskLED(void * pvParameters)
 {
-	//from lab 3
-/*
-The LED tasks will blink the corresponding LED on and off. 
-It will do this at an initial rate of 500ms. 
-It will also check its Queue to see if it has a message waiting (uxQueueMessagesWaiting). 
-If there is a message waiting it should read the message (xQueueReceive) and perform the necessary action. 
-The wait time to the xQueueReceive() should be set to 0. 
-The action will be either to increase or decrease the delay time in increments of 50ms. 
-This should be bounded to a MAX delay of 1000ms and a MIN delay of 200ms. 
-There will be three of these tasks as well. 
-The task should use your LED Driver from Lab 2.
-*/
 
 //from lab 4
 /*
@@ -216,7 +208,21 @@ at the top of the while(1) and right before the vTaskDelay(), LED task will call
 
 	while(true)
 	{
-		
+		//the switch statement to send message back that the led N has started depending on the led number.
+		switch(ledNum)
+		{
+			case LED1:
+				xQueueSendToBack(uartQ, uartBuffer1Start, 0);
+				break;
+			case LED2:
+				xQueueSendToBack(uartQ, uartBuffer2Start, 0);
+				break;
+			case LED3:
+				xQueueSendToBack(uartQ, uartBuffer3Start, 0);
+				break;
+			default:
+				break;	
+		}
 		toggleLED(ledNum);
 
 		
@@ -247,8 +253,6 @@ at the top of the while(1) and right before the vTaskDelay(), LED task will call
 					{
 						xDelay = 200;
 					}
-					
-					
 				}
 
 				else if (getDelay == INCREASE)
@@ -273,8 +277,55 @@ at the top of the while(1) and right before the vTaskDelay(), LED task will call
 				}
 			}
 		}
+		
+		switch(ledNum)
+		{
+			case LED1:
+				xQueueSendToBack(uartQ, uartBuffer1Block, 0);
+				break;
+			case LED2:
+				xQueueSendToBack(uartQ, uartBuffer2Block, 0);
+				break;
+			case LED3:
+				xQueueSendToBack(uartQ, uartBuffer3Block, 0);
+				break;
+			default:
+				break;
+		}
 		vTaskDelay(xDelay);
 	}
+}
+
+void modifiedLEDTask(void *pvParameters)
+{
+	struct ledStruct * controlParams = (struct ledStruct *) pvParameters;
+	QueueHandle_t ledQ = controlParams->ledQ;
+	QueueHandle_t uartQ = controlParams->uartQ;
+	uint8_t ledNum = controlParams->ledNum;
+	int defaultMS = 500;
+	TickType_t xDelay = defaultMS / portTICK_PERIOD_MS;
+	
+	portTickType xStartTime;
+
+    while (1)
+
+    {
+        /* Note the time before entering the while loop.  xTaskGetTickCount()
+        is a FreeRTOS API function. */
+
+        xStartTime = xTaskGetTickCount();
+
+        /* Loop until pxTaskParameters->xToggleRate ticks have */
+
+        while ((xTaskGetTickCount() - xStartTime) < 200);
+
+
+		 /* Toggle the LED */
+		 toggleLED(ledNum);
+
+	}
+	
+	
 }
 
 void taskUART(void *pvParameters)

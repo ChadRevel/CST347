@@ -55,7 +55,6 @@ const char* uartBuffer3A = "LED 3 IS NOW ACTIVE\r\n";
 
 //these are the lab 4 char *'s
 const char* uartBufferMainStart = "Main Control is now starting.\r\n";
-const char* uartBufferMainControl = "Main Control is running.\r\n";
 const char* uartBufferMainBlock = "Main Control is now blocking.\r\n";
 
 const char* uartBuffer1Start = "LED 1 IS NOW STARTING\r\n";
@@ -74,7 +73,7 @@ QueueHandle_t uartQ = NULL;
 
 //create the handles for the controlling the tasks
 TaskHandle_t ledHandle[3] = {NULL, NULL, NULL};
-TaskHandle_t controlHandle[3] = {NULL, NULL, NULL};
+TaskHandle_t controlHandle = NULL;
 TaskHandle_t uartHandle = NULL; 
 
 
@@ -114,25 +113,14 @@ int main (void)
 	ledQ[0] = xQueueCreate(5, sizeof(timeDelay));
 	ledQ[1] = xQueueCreate(5, sizeof(timeDelay));
 	ledQ[2] = xQueueCreate(5, sizeof(timeDelay));
-	uartQ = xQueueCreate(5, sizeof(char[50]));
+	uartQ = xQueueCreate(20, sizeof(char[50]));
 
 
 	////create structs to be able to pass in the values around and not have everything set as a global variable
-	//controlLED1.ledQ = ledQ[0];
-	//controlLED1.uartQ = uartQ;
-	//controlLED1.ledHandle = ledHandle[0];
-	//controlLED1.nextTask = &controlHandle[1];
-	//controlLED1.ledNum = LED1;
-	//controlLED2.ledQ = ledQ[1];
-	//controlLED2.uartQ = uartQ;
-	//controlLED2.ledHandle = ledHandle[1];
-	//controlLED2.nextTask = &controlHandle[2];
-	//controlLED2.ledNum = LED2;
-	//controlLED3.ledQ = ledQ[2];
-	//controlLED3.uartQ = uartQ;
-	//controlLED3.ledHandle = ledHandle[2];
-	//controlLED3.nextTask = &controlHandle[0];	
-	//controlLED3.ledNum = LED3;
+	controlLED.ledQ[0] = ledQ[0];
+	controlLED.ledQ[1] = ledQ[1];
+	controlLED.ledQ[2] = ledQ[2];
+	controlLED.uartQ = uartQ;
 	
 	LED1Struct.ledQ = ledQ[0];
 	LED1Struct.uartQ = uartQ;
@@ -148,17 +136,21 @@ int main (void)
 //need 3 led task creates as well
 
 	//creating a task for the led0 to beat. Need to pass in a parameter of 0, to show that it's for led0
-	xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, 1, NULL);
+	xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, heartbeatPriority, NULL);
 	
-	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, &uartHandle, 1, NULL);
+	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, (void *) uartQ, uartControlPriority, &uartHandle);
 	
-	xTaskCreate(taskLED, "LED 1 Task", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, 1, &ledHandle[0]);
-	xTaskCreate(taskLED, "LED 2 Task", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, 1, &ledHandle[1]);
-	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, 1, &ledHandle[2]);
+	xTaskCreate(taskLED, "LED 1 Task", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, led1ControlPriority, &ledHandle[0]);
+	xTaskCreate(taskLED, "LED 2 Task", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, led2ControlPriority, &ledHandle[1]);
+	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
+	
+	xTaskCreate(modifiedLEDTask, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
+	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
+	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
 	//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
 
 	//for lab 4, we'll only need 1 create task and it will all be based off of sw0 to go through each led
-	xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &controlLED, 1, &controlHandle[0]);
+	xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &controlLED, mainControlPriority, &controlHandle);
 
 	
 	// Start The Scheduler
