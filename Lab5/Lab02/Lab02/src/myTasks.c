@@ -46,22 +46,6 @@ uint8_t currLED = LED1;
 //This is the main control for the task system
 void taskSystemControl(void * pvParamaters)
 {
-	//only suppose to be 1 MainControl task here for lab 4.
-	/*
-	“MainControl” Task – Poll button switches and perform the following actions. As with lab 3,
-	the button switches need to be debounced and a lockout scheme should be implemented.
-	All the hardware considerations from the previous labs apply. 
-	*/
-	
-	/*
-	OTHER MODIFICATIONS AND CONSIDERATIONS – “MainControl” will no longer send a message to the UART
-	task announcing which LED is active based on SW0. Instead, it will send a message only to announce
-	that it (“MainControl” task) is running. To do this, a vQueueSendToBack() message is sent to the UART queue
-	at the top of the while(1) loop to announce “MainControl Starting” and right before it does the end-of-loop vTaskDelay()
-	with “MainControl Blocking”.
-	*/
-	
-	
 	struct controlStruct * controlParams = (struct controlStruct *) pvParamaters;
 	QueueHandle_t ledQueueParam[3];
 	ledQueueParam[0] = controlParams->ledQ[0];
@@ -79,15 +63,6 @@ void taskSystemControl(void * pvParamaters)
 		xQueueSendToBack(uartQueueParam, uartBufferMainStart, (TickType_t) 0);	
 		
 		
-		//the first case will be for sw1
-		//it will create the task for each of the leds.
-		/*
-		EXT_SW1
-		This Switch will decrease the delay time of the corresponding LED task.
-		It will accomplish this by sending a message to this task via the queue setup for this
-		pair using the API function xQueueSendToBack() function.
-		The message will tell the LED task to decrease its delay time.
-		*/
 		if (readButton(SW1) == 1)
 		{
 			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
@@ -100,13 +75,6 @@ void taskSystemControl(void * pvParamaters)
 			}
 		}
 
-		//if sw 2 is pressed, then check each led from the highest led to the lowest, then delete the task
-		/*
-		EXT_SW2
-		This Switch will increase the delay time of the corresponding LED task.
-		It will accomplish this by sending a message to this task via the queue setup for this pair.
-		It will accomplish this by calling xQueueSendToBack() function.
-		*/
 		else if (readButton(SW2) == 1)
 		{
 			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
@@ -119,22 +87,7 @@ void taskSystemControl(void * pvParamaters)
 			}
 		}
 
-		//For the on board switch, if it's pressed, then suspend, or release the leds
-		/*
-		SW0
-		This Switch will cause the next LED to be selected.
-		It will accomplish this by resuming the next MainControl (vTaskResume) Task and then suspending (vTaskSuspend) itself.
-		So if LED1 is the current MainControl Task then after the SUSPEND/RESUME LED2 will be the active MainControl Task.
-		During this operation a message will also be sent to the UART task to identify the new active LED.
-		This message will be in the form of a char * and contain a message stating “LED N IS NOW ACTIVE”.
-		Make sure that it includes the appropriate Line feeds to move cursor to the next line.
-
-		The polling of the switches will happen in sequence and actions will be taken accordingly.
-		After all three switches have been polled, the task will perform a vTaskDelay() for 100ms.
-		Error checking must be implemented to assure that the Message was sent to the appropriate queue with the vQueueSendtoBack().
-		*/
-		
-
+		//SW0
 		else if (readButton(SW0) == 1)
 		{
 			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
@@ -188,15 +141,6 @@ This will give you a visual clue that the FreeRTOS system is still running.
 
 void taskLED(void * pvParameters)
 {
-
-//from lab 4
-/*
-LED Task – The LED task will function in the same way as it did in Lab 3.
-This means the task will use uxQueueMessagesWaiting() and xQueueReceive() to receive timing change messages.
-The one change here is that the LED task will now announce that it is active versus “MainControl” task as in lab 3. As in “MainControl”,
-at the top of the while(1) and right before the vTaskDelay(), LED task will call vQueueSendtoBack() to announce “LED N Starting” and “LED N Blocking”.
-*/
-
 	struct ledStruct * controlParams = (struct ledStruct *) pvParameters;
 	QueueHandle_t ledQ = controlParams->ledQ;
 	QueueHandle_t uartQ = controlParams->uartQ;
@@ -208,85 +152,19 @@ at the top of the while(1) and right before the vTaskDelay(), LED task will call
 
 	while(true)
 	{
-		//the switch statement to send message back that the led N has started depending on the led number.
+
 		switch(ledNum)
 		{
 			case LED1:
-				xQueueSendToBack(uartQ, uartBuffer1Start, 0);
-				break;
-			case LED2:
-				xQueueSendToBack(uartQ, uartBuffer2Start, 0);
-				break;
-			case LED3:
-				xQueueSendToBack(uartQ, uartBuffer3Start, 0);
-				break;
-			default:
-				break;	
-		}
-		toggleLED(ledNum);
-
-		
-		//this will go through the queue for each of the leds and either increase or decrease the delay
-
-		if(uxQueueMessagesWaiting(ledQ))
-		{
-			//if the queue receive of queue handle[i] goes into &getDelay and it's == to pbTrue, increase or decrease
-			if (xQueueReceive(ledQ, &getDelay, 0))
-			{
-
-				if(getDelay == DECREASE)
-				{
-					if (ledNum == LED1)
-					{
-						xQueueSendToBack(uartQ, uartBuffer1D, (TickType_t) 0);
-					}
-					else if (ledNum == LED2)
-					{
-						xQueueSendToBack(uartQ, uartBuffer2D, (TickType_t) 0);
-					}
-					else if (ledNum == LED3)
-					{
-						xQueueSendToBack(uartQ, uartBuffer3D, (TickType_t) 0);
-					}
-					xDelay = (defaultMS - 50) / portTICK_PERIOD_MS;
-					if(xDelay < 200)
-					{
-						xDelay = 200;
-					}
-				}
-
-				else if (getDelay == INCREASE)
-				{
-					if (ledNum == LED1)
-					{
-						xQueueSendToBack(uartQ, uartBuffer1I, (TickType_t) 0);
-					}
-					else if (ledNum == LED2)
-					{
-						xQueueSendToBack(uartQ, uartBuffer2I, (TickType_t) 0);
-					}
-					else if (ledNum == LED3)
-					{
-						xQueueSendToBack(uartQ, uartBuffer3I, (TickType_t) 0);
-					}
-					xDelay = (defaultMS + 50) / portTICK_PERIOD_MS;
-					if(xDelay == 1000)
-					{
-						xDelay = 1000;
-					}
-				}
-			}
-		}
-		
-		switch(ledNum)
-		{
-			case LED1:
+				toggleLED(ledNum);
 				xQueueSendToBack(uartQ, uartBuffer1Block, 0);
 				break;
 			case LED2:
+				toggleLED(ledNum);
 				xQueueSendToBack(uartQ, uartBuffer2Block, 0);
 				break;
 			case LED3:
+				toggleLED(ledNum);
 				xQueueSendToBack(uartQ, uartBuffer3Block, 0);
 				break;
 			default:
@@ -294,38 +172,6 @@ at the top of the while(1) and right before the vTaskDelay(), LED task will call
 		}
 		vTaskDelay(xDelay);
 	}
-}
-
-void modifiedLEDTask(void *pvParameters)
-{
-	struct ledStruct * controlParams = (struct ledStruct *) pvParameters;
-	QueueHandle_t ledQ = controlParams->ledQ;
-	QueueHandle_t uartQ = controlParams->uartQ;
-	uint8_t ledNum = controlParams->ledNum;
-	int defaultMS = 500;
-	TickType_t xDelay = defaultMS / portTICK_PERIOD_MS;
-	
-	portTickType xStartTime;
-
-    while (1)
-
-    {
-        /* Note the time before entering the while loop.  xTaskGetTickCount()
-        is a FreeRTOS API function. */
-
-        xStartTime = xTaskGetTickCount();
-
-        /* Loop until pxTaskParameters->xToggleRate ticks have */
-
-        while ((xTaskGetTickCount() - xStartTime) < 200);
-
-
-		 /* Toggle the LED */
-		 toggleLED(ledNum);
-
-	}
-	
-	
 }
 
 void taskUART(void *pvParameters)
@@ -352,4 +198,36 @@ char tempUART[50];
 			UARTPutStr(EDBG_UART, tempUART, sizeof(tempUART));
 		}
 	}
+}
+
+void taskTX(void *pvParameters)
+{
+	/*
+	TX Task – The TX task will block awaiting a TXQueue message. 
+	The message will be a string of maximum 50 characters (NULL Terminated) 
+	for display to the terminal. The TX task will call the UARTPutStr() function 
+	to display the string to the UART. The TX task will be created with a task priority of 3.
+	*/
+	
+	
+}
+
+void taskRX(void *pvParameters)
+{
+	/*
+	RX Task – The RX task will be blocking waiting for a queue message from the UART ISR.
+	When received it will process the message as defined below. After processing it will 
+	then block waiting for the next character. The RX task will be created with a priority of 4.
+	
+	First it will convert the character to a string and send it to the TX task for echo.
+	Next it will process the character to see if it is a control character
+	The control characters are defined as
+	'1’ – Toggle LED 1 and echo
+	‘2’ – Toggle LED 2 and echo
+	‘3’ – Toggle LED 3 and echo
+	‘u’ – Display your name on its own line and echo of character
+	All other characters have no effect (echo only)
+	*/
+	
+	
 }

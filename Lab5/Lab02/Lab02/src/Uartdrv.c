@@ -57,6 +57,11 @@ uint8_t initUART(Uart * p_Uart)
 		p_Uart->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
 	}
 	
+	// Enable RX Interrupt
+	p_Uart->UART_IER = UART_IER_RXRDY;
+	NVIC_SetPriority(UART0_IRQn, 5);
+	NVIC_EnableIRQ(UART0_IRQn);
+	
 	return retVal;
 }
 
@@ -71,14 +76,27 @@ void UARTPutC(Uart * p_Uart, char data)
 void UARTPutStr(Uart * p_Uart, const char * data, uint8_t len)
 {
 	//call the vUARTPutC();
-	//for (int i = 0; i < len; i++)
-	//{
-		//UARTPutC(p_Uart, data[i]);
-	//}
 	while (*data != '\0')
 	{
 		UARTPutC(p_Uart, *data);
 		data++;
 	}
 	
+}
+extern QueueHandle_t theRXQ;
+void UART0_Handler()
+{
+	uint8_t data = '\0';
+	uint32_t uiStatus = EDBG_UART->UART_SR;
+	BaseType_t xHigherPriorityTaskWoken;
+
+
+	if(uiStatus & UART_SR_RXRDY)
+	{
+		data = (uint8_t) EDBG_UART->UART_RHR;
+		// Send Queue message to task
+		xQueueSendToBackFromISR(&data, &theRXQ, &xHigherPriorityTaskWoken);
+		
+		portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+	}
 }

@@ -66,26 +66,28 @@ const char* uartBuffer2Block = "LED 2 IS NOW BLOCKING\r\n";
 const char* uartBuffer3Block = "LED 3 IS NOW BLOCKING\r\n";
 
 
-//create the 3 queue handles for controlling the queues
+////create the 3 queue handles for controlling the queues
 QueueHandle_t ledQ[3] = {NULL, NULL, NULL};
 QueueHandle_t uartQ = NULL;
-
 
 //create the handles for the controlling the tasks
 TaskHandle_t ledHandle[3] = {NULL, NULL, NULL};
 TaskHandle_t controlHandle = NULL;
 TaskHandle_t uartHandle = NULL; 
 
+//lab 5 queues
+// QueueHandle_t xQueueCreate( UBaseType_t uxQueueLength,
+// UBaseType_t uxItemSize );
+QueueHandle_t theTXQ;
+QueueHandle_t theRXQ;
+QueueHandle_t theLEDQ;
 
 
 //make the structs within the structs	
 struct controlStruct controlLED;
-
-	
 struct ledStruct LED1Struct;
 struct ledStruct LED2Struct;
 struct ledStruct LED3Struct;
-
 
 
 int main (void)
@@ -99,16 +101,6 @@ int main (void)
 	const char* startText = "This is Lab4\r\n";
 	UARTPutStr(EDBG_UART, startText, 0);
 
-	/*
-	The MainControl task will poll the status of all three switches (just as we did in lab 2). 
-	The switches should be debounced with a three stage strategy: 
-	Read the switch, Delay 10ms using a vTaskDelay, then read switch again to verify the change. 
-	In addition you should implement a lockout feature in your driver only allowing a switch to perform a single action on a press. 
-	There will be three of these tasks (only 1 active at a time). 
-	Each of these task will send messages via a queue to its corresponding LED task. 
-	The switches will perform the following function.
-	*/
-
 	//create the queues for the handles
 	ledQ[0] = xQueueCreate(5, sizeof(timeDelay));
 	ledQ[1] = xQueueCreate(5, sizeof(timeDelay));
@@ -116,7 +108,19 @@ int main (void)
 	uartQ = xQueueCreate(20, sizeof(char[50]));
 
 
-	////create structs to be able to pass in the values around and not have everything set as a global variable
+	//creating the queues for lab 5. the tx, rx, and led queues
+	//the tx queue with a size of 50 bytes, and & depth of 20 messages
+	//the rx queue with a size of 1 byte, and & depth of 20 messages
+	//the led queue with a size of 1 bytes, and & depth of 5 messages
+	char twentyMessages[20];
+	char fiveMessages[5];
+	theRXQ = xQueueCreate(50, sizeof(twentyMessages[20]));
+	theRXQ = xQueueCreate(1, sizeof(twentyMessages[20]));
+	theLEDQ = xQueueCreate(1, sizeof(fiveMessages[5]));
+	
+	
+
+	//create structs to be able to pass in the values around and not have everything set as a global variable
 	controlLED.ledQ[0] = ledQ[0];
 	controlLED.ledQ[1] = ledQ[1];
 	controlLED.ledQ[2] = ledQ[2];
@@ -132,6 +136,8 @@ int main (void)
 	LED3Struct.uartQ = uartQ;
 	LED3Struct.ledNum = LED3;
 	
+	//lab 5 structs to pass the values
+	//queueStruct.theRXQ = theRXQ;
 
 //need 3 led task creates as well
 
@@ -140,18 +146,19 @@ int main (void)
 	
 	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, (void *) uartQ, uartControlPriority, &uartHandle);
 	
-	xTaskCreate(taskLED, "LED 1 Task", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, led1ControlPriority, &ledHandle[0]);
-	xTaskCreate(taskLED, "LED 2 Task", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, led2ControlPriority, &ledHandle[1]);
-	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
-	
-	xTaskCreate(modifiedLEDTask, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
-	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
-	xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
-	//create the 3 tasks first, then suspend 2 of them before it actually starts by the start scheduler.
+	//xTaskCreate(taskLED, "LED 1 Task", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, led1ControlPriority, &ledHandle[0]);
+	//xTaskCreate(taskLED, "LED 2 Task", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, led2ControlPriority, &ledHandle[1]);
+	//xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
 
 	//for lab 4, we'll only need 1 create task and it will all be based off of sw0 to go through each led
 	xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &controlLED, mainControlPriority, &controlHandle);
 
+	//for lab 5, have the same heartbeat task, have the led task block on message arrival and toggle leds with number,
+	//tx task, and rx task
+	xTaskCreate(taskTX, "The TX Task", configMINIMAL_STACK_SIZE, (void *) theTXQ, txTaskPriority, NULL);
+	xTaskCreate(taskRX, "The RX Task", configMINIMAL_STACK_SIZE, (void *) theRXQ, rxTaskPriority, NULL);
+	xTaskCreate(taskLED, "The LED Task", configMINIMAL_STACK_SIZE, (void *) theLEDQ, ledTaskPriority, NULL);
+	
 	
 	// Start The Scheduler
 	vTaskStartScheduler();
