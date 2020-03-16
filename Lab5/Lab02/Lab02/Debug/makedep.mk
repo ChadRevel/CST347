@@ -2,6 +2,10 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+src\ASF\sam\drivers\pio\pio.c
+
+src\ASF\sam\drivers\pio\pio_handler.c
+
 src\FreeRTOS\list.c
 
 src\FreeRTOS\portable\GCC\ARM_CM4F\port.c

@@ -41,88 +41,89 @@ extern const char* uartBuffer1Block;
 extern const char* uartBuffer2Block;
 extern const char* uartBuffer3Block;
 
-uint8_t currLED = LED1;
-
+extern const char* myName;
+uint8_t currLED = 0;
 //This is the main control for the task system
-void taskSystemControl(void * pvParamaters)
-{
-	struct controlStruct * controlParams = (struct controlStruct *) pvParamaters;
-	QueueHandle_t ledQueueParam[3];
-	ledQueueParam[0] = controlParams->ledQ[0];
-	ledQueueParam[1] = controlParams->ledQ[1];
-	ledQueueParam[2] = controlParams->ledQ[2];
-	QueueHandle_t uartQueueParam = controlParams->uartQ;
-               
-	//declaration for either increasing or decreasing the speed			                     
-	enum timeDelay incDec;
-
-	while (true)
-	{
-		
-		//first send out a message saying that the main control is starting
-		xQueueSendToBack(uartQueueParam, uartBufferMainStart, (TickType_t) 0);	
-		
-		
-		if (readButton(SW1) == 1)
-		{
-			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			else
-			{
-				SW_Debounce = 0;
-				//send led1 back to the end of the queue
-				incDec = DECREASE;
-				xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
-			}
-		}
-
-		else if (readButton(SW2) == 1)
-		{
-			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			else
-			{
-				SW_Debounce = 0;
-				incDec = INCREASE;
-				//send led1 back to the end of the queue
-				xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
-			}
-		}
-
-		//SW0
-		else if (readButton(SW0) == 1)
-		{
-			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			else
-			{
-				SW_Debounce = 0;
-				switch(currLED)
-				{
-					case LED1:
-						currLED = LED2;
-						break;
-					case LED2:
-						currLED = LED3;
-						break;
-					case LED3:
-						currLED = LED1;
-						break;
-					default:
-						break;
-				}
-				
-			}
-		}
-		//tell uart that the maincontrol is now blocking
-		xQueueSendToBack(uartQueueParam, uartBufferMainBlock, (TickType_t) 0);
-		
-		//delay for 100ms after all 3 switches
-		vTaskDelay(xDelay3);
-	}
-
-}
+//void taskSystemControl(void * pvParamaters)
+//{
+	//struct rxStruct * controlParams = (struct rxStruct *) pvParamaters;
+	//QueueHandle_t ledQueueParam[3];
+	//ledQueueParam[0] = controlParams->ledQ[0];
+	//ledQueueParam[1] = controlParams->ledQ[1];
+	//ledQueueParam[2] = controlParams->ledQ[2];
+	//QueueHandle_t uartQueueParam = controlParams->uartQ;
+               //
+	////declaration for either increasing or decreasing the speed			                     
+	//enum timeDelay incDec;
+//
+	//while (true)
+	//{
+		//
+		////first send out a message saying that the main control is starting
+		//xQueueSendToBack(uartQueueParam, uartBufferMainStart, (TickType_t) 0);	
+		//
+		//
+		//if (readButton(SW1) == 1)
+		//{
+			//if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			//else
+			//{
+				//SW_Debounce = 0;
+				////send led1 back to the end of the queue
+				//incDec = DECREASE;
+				//xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
+			//}
+		//}
+//
+		//else if (readButton(SW2) == 1)
+		//{
+			//if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			//else
+			//{
+				//SW_Debounce = 0;
+				//incDec = INCREASE;
+				////send led1 back to the end of the queue
+				//xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
+			//}
+		//}
+//
+		////SW0
+		//else if (readButton(SW0) == 1)
+		//{
+			//if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			//else
+			//{
+				//SW_Debounce = 0;
+				//switch(currLED)
+				//{
+					//case LED1:
+						//currLED = LED2;
+						//break;
+					//case LED2:
+						//currLED = LED3;
+						//break;
+					//case LED3:
+						//currLED = LED1;
+						//break;
+					//default:
+						//break;
+				//}
+				//
+			//}
+		//}
+		////tell uart that the maincontrol is now blocking
+		//xQueueSendToBack(uartQueueParam, uartBufferMainBlock, (TickType_t) 0);
+		//
+		////delay for 100ms after all 3 switches
+		//vTaskDelay(xDelay3);
+	//}
+//
+//}
 	
 //this is the heartbeat task to have led 0 blink		
 void taskHeartBeat (void * pvParamaters)		
 {
+
 /*
 The heartbeat task will be responsible for toggling the on-board LED every second.
 This will give you a visual clue that the FreeRTOS system is still running.
@@ -141,37 +142,16 @@ This will give you a visual clue that the FreeRTOS system is still running.
 
 void taskLED(void * pvParameters)
 {
-	struct ledStruct * controlParams = (struct ledStruct *) pvParameters;
-	QueueHandle_t ledQ = controlParams->ledQ;
-	QueueHandle_t uartQ = controlParams->uartQ;
-	uint8_t ledNum = controlParams->ledNum;
-	int defaultMS = 500;
-	TickType_t xDelay = defaultMS / portTICK_PERIOD_MS;
+	
+	QueueHandle_t LEDParam = (QueueHandle_t) pvParameters;
 
-	timeDelay getDelay;
 
 	while(true)
 	{
-
-		switch(ledNum)
-		{
-			case LED1:
-				toggleLED(ledNum);
-				xQueueSendToBack(uartQ, uartBuffer1Block, 0);
-				break;
-			case LED2:
-				toggleLED(ledNum);
-				xQueueSendToBack(uartQ, uartBuffer2Block, 0);
-				break;
-			case LED3:
-				toggleLED(ledNum);
-				xQueueSendToBack(uartQ, uartBuffer3Block, 0);
-				break;
-			default:
-				break;
-		}
-		vTaskDelay(xDelay);
+		xQueueReceive(LEDParam, &(currLED), portMAX_DELAY);
+		toggleLED(currLED);
 	}
+
 }
 
 void taskUART(void *pvParameters)
@@ -202,6 +182,10 @@ char tempUART[50];
 
 void taskTX(void *pvParameters)
 {
+	struct rxStruct * controlParams = (struct rxStruct *) pvParameters;
+	QueueHandle_t theRXQ = controlParams->theRXQ;
+	
+	char bufferString[50];
 	/*
 	TX Task – The TX task will block awaiting a TXQueue message. 
 	The message will be a string of maximum 50 characters (NULL Terminated) 
@@ -209,15 +193,32 @@ void taskTX(void *pvParameters)
 	to display the string to the UART. The TX task will be created with a task priority of 3.
 	*/
 	
+	while (true)
+	{
+		//will first wait until the rx queue is sent into tx for processing
+		//receive the rx message for echo, and place it into a buffer
+		xQueueReceive(theRXQ, &bufferString, portMAX_DELAY);
+		UARTPutStr(EDBG_UART, bufferString, sizeof(bufferString));
+	}
 	
 }
 
 void taskRX(void *pvParameters)
 {
+		struct rxStruct * controlParams = (struct rxStruct *) pvParameters;
+		QueueHandle_t myRXQ = controlParams->theRXQ;
+		QueueHandle_t myTXQ = controlParams->theTXQ;
+		//QueueHandle_t theLEDQ = controlParams->theLEDQ;
+		
+		char rxBuffer = 0;
+		char stringBuffer[50];
+
+		int n = 0;
 	/*
 	RX Task – The RX task will be blocking waiting for a queue message from the UART ISR.
 	When received it will process the message as defined below. After processing it will 
-	then block waiting for the next character. The RX task will be created with a priority of 4.
+	then block waiting for the next character. The RX task will be created with a
+	priority of 4.
 	
 	First it will convert the character to a string and send it to the TX task for echo.
 	Next it will process the character to see if it is a control character
@@ -228,6 +229,55 @@ void taskRX(void *pvParameters)
 	‘u’ – Display your name on its own line and echo of character
 	All other characters have no effect (echo only)
 	*/
-	
+
+	while (true)
+	{
+		xQueueReceive(myRXQ, &rxBuffer, portMAX_DELAY);
+		stringBuffer[0] = rxBuffer;
+		
+		//until we hit the end of the buffer, move through each char
+		if (stringBuffer != NULL)
+		{
+			stringBuffer[n] = (char) rxBuffer;
+			//if the char is 1, then toggle led1 and send echo to tx task
+			if (stringBuffer[n] == '1')
+			{
+				toggleLED(LED1);
+				xQueueSendToBack(myTXQ, &stringBuffer, 0);
+				
+			}
+			//else if the char is 2, then toggle led2 and send echo to tx task
+			else if (stringBuffer[n] == '2')
+			{
+				toggleLED(LED1);
+				xQueueSendToBack(myTXQ, &stringBuffer, 0);
+				
+			}
+			//else if the char is 3, then toggle led3 and send echo to tx task
+			else if (stringBuffer[n] == '3')
+			{
+				toggleLED(LED1);
+				xQueueSendToBack(myTXQ, &stringBuffer, 0);
+							
+			}
+			//else if the char is u, then display "Chad" and send echo of char to tx task
+			else if (stringBuffer[n] == 'u')
+			{
+				xQueueSendToBack(myTXQ, &stringBuffer, 0);
+				UARTPutStr(EDBG_UART, myName, 0);
+							
+			}
+			//else only echo to tx task and nothing else
+			else
+			{
+				xQueueSendToBack(myTXQ, &stringBuffer, 0);
+			}
+			//step further into the string
+			n++;
+			
+		}
+		
+		
+	}
 	
 }

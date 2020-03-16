@@ -19,6 +19,8 @@ The initUART() function will initialize the UART.
 The UARTPutC() will print a single byte (char) to the UART.
 The UARTPutStr() function will use the UARTPutC() to write a complete string to the UART.
 */
+extern QueueHandle_t theRXQ;
+
 
 uint8_t initUART(Uart * p_Uart)
 {
@@ -83,19 +85,19 @@ void UARTPutStr(Uart * p_Uart, const char * data, uint8_t len)
 	}
 	
 }
-extern QueueHandle_t theRXQ;
+
 void UART0_Handler()
 {
-	uint8_t data = '\0';
+	char data = '\0';
 	uint32_t uiStatus = EDBG_UART->UART_SR;
 	BaseType_t xHigherPriorityTaskWoken;
 
 
 	if(uiStatus & UART_SR_RXRDY)
 	{
-		data = (uint8_t) EDBG_UART->UART_RHR;
+		data = (char) EDBG_UART->UART_RHR;
 		// Send Queue message to task
-		xQueueSendToBackFromISR(&data, &theRXQ, &xHigherPriorityTaskWoken);
+		xQueueSendToBackFromISR(theRXQ, &data, &xHigherPriorityTaskWoken);
 		
 		portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 	}

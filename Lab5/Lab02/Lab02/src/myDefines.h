@@ -7,6 +7,8 @@
 #ifndef MYDEFINES_H_
 #define MYDEFINES_H_
 
+//#include "system_sam4e.h"
+
 #define EXT_LED1	PIO_PD28_IDX
 #define EXT_LED2	PIO_PD17_IDX
 #define EXT_LED3	PIO_PE1_IDX
@@ -37,5 +39,7 @@
 #define ledTaskPriority			2
 
 #define maxSWDebounce	1 // this number * 100 ms = total debounce time
+
+
 
 #endif

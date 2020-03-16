@@ -108,4 +108,32 @@ standard names. */
 If not defined, the local broadcast address will be used, e.g. 192.168.0.255
 */
 
+/////////////////////////////////////////////////////////////////////////////////
+//This is the second part of lab 5 configurations
+// These are the defines for the onboard button. They are already defined for you.
+// you will need to make similar defines for the external buttons
+//this is for sw0
+//#define PIN_PUSHBUTTON_1_MASK  PIO_PA2
+//#define PIN_PUSHBUTTON_1_PIO   PIOA
+//#define PIN_PUSHBUTTON_1_ID    ID_PIOA
+//#define PIN_PUSHBUTTON_1_TYPE  PIOA_INPUT
+//#define PIN_PUSHBUTTON_1_ATTR  (PIO_PULLUP | PIO_DEBOUNCE | PIO_IT_RISE_EDGE)
+//#define PIN_PUSHBUTTON_1_IRQn  PIOA_IRQn
+
+//this is for ext_sw1 which is PD26
+#define PIN_PUSHBUTTON_2_MASK  PIO_PD26
+#define PIN_PUSHBUTTON_2_PIO   PIOD
+#define PIN_PUSHBUTTON_2_ID    ID_PIOD
+#define PIN_PUSHBUTTON_2_TYPE  PIO_INPUT
+#define PIN_PUSHBUTTON_2_ATTR  (PIO_PULLUP | PIO_DEBOUNCE | PIO_IT_RISE_EDGE)
+#define PIN_PUSHBUTTON_2_IRQn  PIOD_IRQn
+
+//this is for ext_sw2 which is PD30
+#define PIN_PUSHBUTTON_3_MASK  PIO_PD30
+#define PIN_PUSHBUTTON_3_PIO   PIOD
+#define PIN_PUSHBUTTON_3_ID    ID_PIOD
+#define PIN_PUSHBUTTON_3_TYPE  PIO_INPUT
+#define PIN_PUSHBUTTON_3_ATTR  (PIO_PULLUP | PIO_DEBOUNCE | PIO_IT_RISE_EDGE)
+#define PIN_PUSHBUTTON_3_IRQn  PIOD_IRQn
+
 #endif /* FREERTOSCONFIG_H_ */

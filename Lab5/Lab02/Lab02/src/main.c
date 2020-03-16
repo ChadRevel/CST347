@@ -65,15 +65,20 @@ const char* uartBuffer1Block = "LED 1 IS NOW BLOCKING\r\n";
 const char* uartBuffer2Block = "LED 2 IS NOW BLOCKING\r\n";
 const char* uartBuffer3Block = "LED 3 IS NOW BLOCKING\r\n";
 
+//my name for lab 5
+const char* myName = "Chad\r\n";
+
 
 ////create the 3 queue handles for controlling the queues
-QueueHandle_t ledQ[3] = {NULL, NULL, NULL};
-QueueHandle_t uartQ = NULL;
+//QueueHandle_t ledQ[3] = {NULL, NULL, NULL};
+//QueueHandle_t uartQ = NULL;
 
 //create the handles for the controlling the tasks
-TaskHandle_t ledHandle[3] = {NULL, NULL, NULL};
+TaskHandle_t ledHandle = NULL;
 TaskHandle_t controlHandle = NULL;
-TaskHandle_t uartHandle = NULL; 
+TaskHandle_t txHandle = NULL; 
+TaskHandle_t rxHandle = NULL; 
+TaskHandle_t buttonHandle = NULL;
 
 //lab 5 queues
 // QueueHandle_t xQueueCreate( UBaseType_t uxQueueLength,
@@ -84,10 +89,11 @@ QueueHandle_t theLEDQ;
 
 
 //make the structs within the structs	
-struct controlStruct controlLED;
-struct ledStruct LED1Struct;
-struct ledStruct LED2Struct;
-struct ledStruct LED3Struct;
+struct rxStruct controlLED;
+struct rxStruct rxParams;
+//struct ledStruct LED1Struct;
+//struct ledStruct LED2Struct;
+//struct ledStruct LED3Struct;
 
 
 int main (void)
@@ -98,66 +104,47 @@ int main (void)
 	initializeButtonDriver();
 	initUART(EDBG_UART);
 	
-	const char* startText = "This is Lab4\r\n";
+	const char* startText = "This is Lab5\r\n";
 	UARTPutStr(EDBG_UART, startText, 0);
 
 	//create the queues for the handles
-	ledQ[0] = xQueueCreate(5, sizeof(timeDelay));
-	ledQ[1] = xQueueCreate(5, sizeof(timeDelay));
-	ledQ[2] = xQueueCreate(5, sizeof(timeDelay));
-	uartQ = xQueueCreate(20, sizeof(char[50]));
+	//ledQ[0] = xQueueCreate(5, sizeof(timeDelay));
+	//ledQ[1] = xQueueCreate(5, sizeof(timeDelay));
+	//ledQ[2] = xQueueCreate(5, sizeof(timeDelay));
+	//uartQ = xQueueCreate(20, sizeof(char[50]));
 
 
 	//creating the queues for lab 5. the tx, rx, and led queues
 	//the tx queue with a size of 50 bytes, and & depth of 20 messages
 	//the rx queue with a size of 1 byte, and & depth of 20 messages
 	//the led queue with a size of 1 bytes, and & depth of 5 messages
-	char twentyMessages[20];
-	char fiveMessages[5];
-	theRXQ = xQueueCreate(50, sizeof(twentyMessages[20]));
-	theRXQ = xQueueCreate(1, sizeof(twentyMessages[20]));
-	theLEDQ = xQueueCreate(1, sizeof(fiveMessages[5]));
+	theTXQ = xQueueCreate(20, sizeof(char[50]));
+	theRXQ = xQueueCreate(20, sizeof(char));
+	theLEDQ = xQueueCreate(5, sizeof(int));
 	
-	
-
-	//create structs to be able to pass in the values around and not have everything set as a global variable
-	controlLED.ledQ[0] = ledQ[0];
-	controlLED.ledQ[1] = ledQ[1];
-	controlLED.ledQ[2] = ledQ[2];
-	controlLED.uartQ = uartQ;
-	
-	LED1Struct.ledQ = ledQ[0];
-	LED1Struct.uartQ = uartQ;
-	LED1Struct.ledNum = LED1;
-	LED2Struct.ledQ = ledQ[1];
-	LED2Struct.uartQ = uartQ;
-	LED2Struct.ledNum = LED2;
-	LED3Struct.ledQ = ledQ[2];
-	LED3Struct.uartQ = uartQ;
-	LED3Struct.ledNum = LED3;
 	
 	//lab 5 structs to pass the values
-	//queueStruct.theRXQ = theRXQ;
+	rxParams.theRXQ = theRXQ;
+	rxParams.theTXQ = theTXQ;
 
-//need 3 led task creates as well
 
 	//creating a task for the led0 to beat. Need to pass in a parameter of 0, to show that it's for led0
 	xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, heartbeatPriority, NULL);
 	
-	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, (void *) uartQ, uartControlPriority, &uartHandle);
+	//xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, (void *) uartQ, uartControlPriority, &uartHandle);
 	
 	//xTaskCreate(taskLED, "LED 1 Task", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, led1ControlPriority, &ledHandle[0]);
 	//xTaskCreate(taskLED, "LED 2 Task", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, led2ControlPriority, &ledHandle[1]);
 	//xTaskCreate(taskLED, "LED 3 Task", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, led3ControlPriority, &ledHandle[2]);
 
 	//for lab 4, we'll only need 1 create task and it will all be based off of sw0 to go through each led
-	xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &controlLED, mainControlPriority, &controlHandle);
+	//xTaskCreate(taskSystemControl, "Main Control in Main", configMINIMAL_STACK_SIZE, (void *) &controlLED, mainControlPriority, &controlHandle);
 
 	//for lab 5, have the same heartbeat task, have the led task block on message arrival and toggle leds with number,
 	//tx task, and rx task
-	xTaskCreate(taskTX, "The TX Task", configMINIMAL_STACK_SIZE, (void *) theTXQ, txTaskPriority, NULL);
-	xTaskCreate(taskRX, "The RX Task", configMINIMAL_STACK_SIZE, (void *) theRXQ, rxTaskPriority, NULL);
-	xTaskCreate(taskLED, "The LED Task", configMINIMAL_STACK_SIZE, (void *) theLEDQ, ledTaskPriority, NULL);
+	xTaskCreate(taskTX, "The TX Task", configMINIMAL_STACK_SIZE, (void *) theTXQ, txTaskPriority, &txHandle);
+	xTaskCreate(taskRX, "The RX Task", configMINIMAL_STACK_SIZE, (void *) &rxParams, rxTaskPriority, &rxHandle);
+	xTaskCreate(taskLED, "The LED Task", configMINIMAL_STACK_SIZE, (void *) theLEDQ, ledTaskPriority, &ledHandle);
 	
 	
 	// Start The Scheduler

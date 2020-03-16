@@ -17,9 +17,9 @@
 
 #include <asf.h>
 #include <FreeRTOS.h>
-#include "task.h"
-#include "string.h"
-#include "queue.h"
+#include <task.h>
+#include <string.h>
+#include <queue.h>
 
 uint8_t initUART(Uart * pUart);
 void UARTPutC(Uart * pUart, char data);

@@ -65,6 +65,9 @@
 // From module: Interrupt management - SAM implementation
 #include <interrupt.h>
 
+// From module: PIO - Parallel Input/Output Controller
+#include <pio.h>
+
 // From module: PMC - Power Management Controller
 #include <pmc.h>
 #include <sleep.h>
@@ -83,5 +86,8 @@
 
 // From module: System Clock Control - SAM4E implementation
 #include <sysclk.h>
+
+// From module: pio_handler support enabled
+#include <pio_handler.h>
 
 #endif // ASF_H

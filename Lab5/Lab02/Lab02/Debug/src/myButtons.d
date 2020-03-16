@@ -134,13 +134,16 @@ src/myButtons.d src/myButtons.o: ../src/myButtons.c ../src/asf.h \
  ../src/ASF/common/services/clock/sam4e/osc.h \
  ../src/ASF/sam/drivers/pmc/pmc.h ../src/ASF/common/services/clock/pll.h \
  ../src/ASF/common/services/clock/sam4e/pll.h \
- ../src/ASF/sam/drivers/pmc/sleep.h ../src/ASF/sam/utils/fpu/fpu.h \
+ ../src/ASF/sam/drivers/pio/pio.h ../src/ASF/sam/drivers/pmc/sleep.h \
+ ../src/ASF/sam/utils/fpu/fpu.h \
  ../src/ASF/sam/boards/sam4e_xplained_pro/led.h \
+ ../src/ASF/sam/drivers/pio/pio_handler.h \
  ../src/FreeRTOS/include/FreeRTOS.h ../src/FreeRTOSConfig.h \
  ../src/FreeRTOS/include/projdefs.h ../src/FreeRTOS/include/portable.h \
  ../src/FreeRTOS/include/deprecated_definitions.h \
  ../src/FreeRTOS/portable/GCC/ARM_CM4F/portmacro.h \
  ../src/FreeRTOS/include/mpu_wrappers.h ../src/myButtons.h \
+ ../src/FreeRTOS/include/task.h ../src/FreeRTOS/include/list.h \
  ../src/myDefines.h
 
 ../src/asf.h:
@@ -421,11 +424,15 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/common/services/clock/sam4e/pll.h:
 
+../src/ASF/sam/drivers/pio/pio.h:
+
 ../src/ASF/sam/drivers/pmc/sleep.h:
 
 ../src/ASF/sam/utils/fpu/fpu.h:
 
 ../src/ASF/sam/boards/sam4e_xplained_pro/led.h:
+
+../src/ASF/sam/drivers/pio/pio_handler.h:
 
 ../src/FreeRTOS/include/FreeRTOS.h:
 
@@ -442,5 +449,9 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/FreeRTOS/include/mpu_wrappers.h:
 
 ../src/myButtons.h:
+
+../src/FreeRTOS/include/task.h:
+
+../src/FreeRTOS/include/list.h:
 
 ../src/myDefines.h:

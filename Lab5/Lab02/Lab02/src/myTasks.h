@@ -16,8 +16,8 @@
 #include "myDefines.h"
 
 //create structs for the globals
-typedef struct controlStruct{QueueHandle_t ledQ[3]; QueueHandle_t uartQ;}controlStruct;
-typedef struct ledStruct{QueueHandle_t ledQ; QueueHandle_t uartQ; uint8_t ledNum;}ledStruct;
+typedef struct rxStruct{QueueHandle_t theTXQ; QueueHandle_t theRXQ;}rxStruct;
+//typedef struct ledStruct{QueueHandle_t ledQ; QueueHandle_t uartQ; uint8_t ledNum;}ledStruct;
 	
 //typedef struct queueStruct{QueueHandle_t theRXQ;}queueStruct;
 	

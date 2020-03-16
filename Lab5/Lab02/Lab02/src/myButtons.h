@@ -8,9 +8,11 @@
 
 #include <asf.h>
 #include <FreeRTOS.h>
+#include <task.h>
 
 //initializeButtonDriver and readButton
 void initializeButtonDriver(void);
 uint8_t readButton(uint8_t uiButtonNum);
+void button_handler(uint32_t id, uint32_t mask);
 
 #endif /* MYBUTTONS_H_ */
