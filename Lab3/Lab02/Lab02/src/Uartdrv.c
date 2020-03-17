@@ -56,7 +56,6 @@ uint8_t initUART(Uart * p_Uart)
 		// Enable RX and TX
 		p_Uart->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
 	}
-	
 	return retVal;
 }
 
@@ -71,10 +70,6 @@ void UARTPutC(Uart * p_Uart, char data)
 void UARTPutStr(Uart * p_Uart, const char * data, uint8_t len)
 {
 	//call the vUARTPutC();
-	//for (int i = 0; i < len; i++)
-	//{
-		//UARTPutC(p_Uart, data[i]);
-	//}
 	while (*data != '\0')
 	{
 		UARTPutC(p_Uart, *data);

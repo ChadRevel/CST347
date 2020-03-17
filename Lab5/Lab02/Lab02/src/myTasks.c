@@ -46,41 +46,26 @@ void buttonTask(void * pvParamaters)
 
 	“\r\nLab 05 – Interrupts in FreeRTOS\r\n”
 	*/
-	struct rxStruct * controlParams = (struct rxStruct *) pvParamaters;
-	QueueHandle_t myTXQ = controlParams->theTXQ;
-		
+	QueueHandle_t myTXQ = (QueueHandle_t) pvParamaters;
+	
 	while (true)
 	{	
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		
+		//SW1
 		if (readButton(SW1) == 1)
 		{
-			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			else
-			{
-				//xQueueSendToBack(myTXQ, &stringBuffer, 0);
-				SW_Debounce = 0;
-				xQueueSendToBack(myTXQ, uartEXT_SW1, (TickType_t) 0);
-			}
+			xQueueSendToBack(myTXQ, uartEXT_SW1, 0);
 		}
-		
+		//SW2
 		else if (readButton(SW2) == 1)
 		{
-			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			else
-			{
-				SW_Debounce = 0;
-				xQueueSendToBack(myTXQ, uartEXT_SW2, (TickType_t) 0);
-			}
+			xQueueSendToBack(myTXQ, uartEXT_SW2, 0);
 		}
-		
 		//SW0
 		else if (readButton(SW0) == 1)
 		{			
-			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			else
-			{
-				SW_Debounce = 0;
-				xQueueSendToBack(myTXQ, uartSW0, (TickType_t) 0);
-			}
+			xQueueSendToBack(myTXQ, uartSW0, 0);
 		}
 		
 	}
@@ -90,67 +75,35 @@ void buttonTask(void * pvParamaters)
 //this is the heartbeat task to have led 0 blink		
 void taskHeartBeat (void * pvParamaters)		
 {
-
 /*
 The heartbeat task will be responsible for toggling the on-board LED every second.
 This will give you a visual clue that the FreeRTOS system is still running.
 */	
-
 	//this is the heartbeat for LED 0 to happen once every second
 	while (true)
 	{
 		toggleLED(LED0);
 		vTaskDelay(xDelay2);
-
-	}
-		
+	}		
 }
 
 
 void taskLED(void * pvParameters)
 {
-	
+	//the led param will be received and depending on what the current led is
+	//then this will toggle said current led
 	QueueHandle_t LEDParam = (QueueHandle_t) pvParameters;
-
 
 	while(true)
 	{
 		xQueueReceive(LEDParam, &(currLED), portMAX_DELAY);
 		toggleLED(currLED);
 	}
-
-}
-
-void taskUART(void *pvParameters)
-{
-/*
-The UART task will block until a message is ready for it. To accomplish this blocking
-set the last parameter of the xQueueReceive() to portMAX_DELAY. It will then get the message
-and write it out on the UART using your UARTPutStr(). You will need to write a very rudimentary
-UART driver for your program. The filenames for the driver will be uartdrv.c and uartdrv.h.
-This should include three functions. The functions should be initUART(), UARTPutC() and UARTPutStr().
-The initUART() function will initialize the UART. The UARTPutC() will print a single byte (char) to the UART.
-The UARTPutStr() function will use the UARTPutC() to write a complete string to the UART.
-*/	
-
-QueueHandle_t uartTempQueue = (QueueHandle_t) pvParameters;
-
-char tempUART[50];
-
-	while(true)
-	{
-		if(uxQueueMessagesWaiting(uartTempQueue))
-		{
-			xQueueReceive(uartTempQueue, &tempUART, portMAX_DELAY);
-			UARTPutStr(EDBG_UART, tempUART, sizeof(tempUART));
-		}
-	}
 }
 
 void taskTX(void *pvParameters)
 {
-	struct rxStruct * controlParams = (struct rxStruct *) pvParameters;
-	QueueHandle_t theRXQ = controlParams->theRXQ;
+	QueueHandle_t theTXQ = ( QueueHandle_t) pvParameters;
 	
 	char bufferString[50];
 	/*
@@ -164,7 +117,7 @@ void taskTX(void *pvParameters)
 	{
 		//will first wait until the rx queue is sent into tx for processing
 		//receive the rx message for echo, and place it into a buffer
-		xQueueReceive(theRXQ, &bufferString, portMAX_DELAY);
+		xQueueReceive(theTXQ, &bufferString, portMAX_DELAY);
 		UARTPutStr(EDBG_UART, bufferString, sizeof(bufferString));
 	}
 	
@@ -172,15 +125,14 @@ void taskTX(void *pvParameters)
 
 void taskRX(void *pvParameters)
 {
-		struct rxStruct * controlParams = (struct rxStruct *) pvParameters;
-		QueueHandle_t myRXQ = controlParams->theRXQ;
-		QueueHandle_t myTXQ = controlParams->theTXQ;
-		//QueueHandle_t theLEDQ = controlParams->theLEDQ;
+	struct rxStruct * controlParams = (struct rxStruct *) pvParameters;
+	QueueHandle_t myRXQ = controlParams->theRXQ;
+	QueueHandle_t myTXQ = controlParams->theTXQ;
 		
-		char rxBuffer = 0;
-		char stringBuffer[50];
+	char rxBuffer = 0;
+	char stringBuffer[50] = "X";
 
-		int n = 0;
+	int n = 0;
 	/*
 	RX Task – The RX task will be blocking waiting for a queue message from the UART ISR.
 	When received it will process the message as defined below. After processing it will 
@@ -201,50 +153,34 @@ void taskRX(void *pvParameters)
 	{
 		xQueueReceive(myRXQ, &rxBuffer, portMAX_DELAY);
 		stringBuffer[0] = rxBuffer;
-		
+
 		//until we hit the end of the buffer, move through each char
 		if (stringBuffer != NULL)
 		{
 			stringBuffer[n] = (char) rxBuffer;
+			//Echo out the char that was received
+			xQueueSendToBack(myTXQ, &stringBuffer, 0);
+			
 			//if the char is 1, then toggle led1 and send echo to tx task
 			if (stringBuffer[n] == '1')
 			{
-				toggleLED(LED1);
-				xQueueSendToBack(myTXQ, &stringBuffer, 0);
-				
+				toggleLED(LED1);	
 			}
 			//else if the char is 2, then toggle led2 and send echo to tx task
 			else if (stringBuffer[n] == '2')
 			{
-				toggleLED(LED1);
-				xQueueSendToBack(myTXQ, &stringBuffer, 0);
-				
+				toggleLED(LED2);	
 			}
 			//else if the char is 3, then toggle led3 and send echo to tx task
 			else if (stringBuffer[n] == '3')
 			{
-				toggleLED(LED1);
-				xQueueSendToBack(myTXQ, &stringBuffer, 0);
-							
+				toggleLED(LED3);
 			}
 			//else if the char is u, then display "Chad" and send echo of char to tx task
 			else if (stringBuffer[n] == 'u')
 			{
-				xQueueSendToBack(myTXQ, &stringBuffer, 0);
-				UARTPutStr(EDBG_UART, myName, 0);
-							
-			}
-			//else only echo to tx task and nothing else
-			else
-			{
-				xQueueSendToBack(myTXQ, &stringBuffer, 0);
-			}
-			//step further into the string
-			n++;
-			
+				xQueueSendToBack(myTXQ, myName, 0);
+			}	
 		}
-		
-		
 	}
-	
 }

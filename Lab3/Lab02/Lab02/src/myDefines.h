@@ -24,4 +24,6 @@
 #define SW1		1
 #define SW2		2
 
+#define maxSWDebounce	1 //this number * 100 ms = total debounce time
+
 #endif

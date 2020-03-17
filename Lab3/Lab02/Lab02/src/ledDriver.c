@@ -25,9 +25,9 @@ void intitializeLEDDriver(void)
 	ioport_set_pin_dir(EXT_LED3, IOPORT_DIR_OUTPUT);
 	
 	//set the leds to low, so they are inactive
-	ioport_set_pin_level(EXT_LED1, 1);
-	ioport_set_pin_level(EXT_LED2, 1);
-	ioport_set_pin_level(EXT_LED3, 1);
+	ioport_set_pin_level(EXT_LED1, 0);
+	ioport_set_pin_level(EXT_LED2, 0);
+	ioport_set_pin_level(EXT_LED3, 0);
 	
 	
 }
@@ -107,10 +107,7 @@ If the led is on, then turn it off
 If the led is off, then turn it on
 */
 	if (readLED(uiLedNum) == 1)
-	{
 		return setLED(uiLedNum, 0);
-		
-	}
 	else
 		return setLED(uiLedNum, 1);
 	

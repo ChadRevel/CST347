@@ -76,6 +76,11 @@ int main (void)
 	
 	const char* startText = "This is Lab6\r\n";
 	UARTPutStr(EDBG_UART, startText, 0);
+	
+	//lab 6 register commands with cli
+	FreeRTOS_CLIRegisterCommand(&xTaskStatsCommand);
+	
+	//UARTPutStr(EDBG_UART, &xTaskStatsCommand, 0);
 
 	//creating the queues for lab 5. the tx, rx, and led queues
 	//the tx queue with a size of 50 bytes, and & depth of 20 messages
@@ -99,8 +104,7 @@ int main (void)
 	xTaskCreate(taskLED, "The LED Task", configMINIMAL_STACK_SIZE, (void *) theLEDQ, ledTaskPriority, &ledHandle);
 	xTaskCreate(buttonTask, "Button Task", configMINIMAL_STACK_SIZE, (void *) theTXQ, txTaskPriority, &buttonHandle);
 	
-	//lab 6 register commands with cli
-	xTaskStatsCommand;//was suppose to be registering the commands, but I don't know how cause there's no example on how to do so in the pdf or on canvas.
+
 	
 	// Start The Scheduler
 	vTaskStartScheduler();

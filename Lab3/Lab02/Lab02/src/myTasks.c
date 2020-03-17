@@ -16,6 +16,8 @@
 const TickType_t xDelay2 = 1000 / portTICK_PERIOD_MS;
 const TickType_t xDelay3 = 100 / portTICK_PERIOD_MS;
 
+int SW_Debounce = 0;
+
 extern const char* uartBuffer1D;
 extern const char* uartBuffer2D;
 extern const char* uartBuffer3D;
@@ -28,8 +30,21 @@ extern const char* uartBuffer1A;
 extern const char* uartBuffer2A;
 extern const char* uartBuffer3A;
 
+//This is the main control for the task system
 void taskSystemControl(void * pvParamaters)
 {
+	/*
+	The MainControl task will poll the status of all three switches
+	(just as we did in lab 2). The switches should be debounced with
+	a three stage strategy: Read the switch, Delay 10ms using a vTaskDelay,
+	then read switch again to verify the change.
+	
+	In addition you should implement a lockout feature in your driver
+	only allowing a switch to perform a single action on a press.
+	There will be three of these tasks (only 1 active at a time). 
+	Each of these task will send messages via a queue to its corresponding LED task.
+	The switches will perform the following function.
+	*/
 	struct controlStruct * controlParams = (struct controlStruct *) pvParamaters;
 	QueueHandle_t ledQueueParam = controlParams->ledQ;
 	QueueHandle_t uartQueueParam = controlParams->uartQ;
@@ -52,11 +67,14 @@ void taskSystemControl(void * pvParamaters)
 		*/
 		if (readButton(SW1) == 1)
 		{
-
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
+			{
+				SW_Debounce = 0;
 				//send led1 back to the end of the queue
 				incDec = DECREASE;
 				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
-
+			}
 		}
 
 		//if sw 2 is pressed, then check each led from the highest led to the lowest, then delete the task
@@ -68,11 +86,14 @@ void taskSystemControl(void * pvParamaters)
 		*/
 		else if (readButton(SW2) == 1)
 		{
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
+			{
+				SW_Debounce = 0;
 				incDec = INCREASE;
 				//send led1 back to the end of the queue
 				xQueueSendToBack(ledQueueParam, (void *) &incDec, (TickType_t) 10);
-
-
+			}
 		}
 
 		//For the on board switch, if it's pressed, then suspend, or release the leds
@@ -89,29 +110,42 @@ void taskSystemControl(void * pvParamaters)
 		After all three switches have been polled, the task will perform a vTaskDelay() for 100ms.
 		Error checking must be implemented to assure that the Message was sent to the appropriate queue with the vQueueSendtoBack().
 		*/
-		else if (readButton(SW0) == 1)
+		else if (readButton(SW0) == 0)
 		{
-			if(ledParam == LED1)
+
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
 			{
-				xQueueSendToBack(uartQueueParam, uartBuffer1A, (TickType_t) 0);				
+				SW_Debounce = 0;
+				if(ledParam == LED1)
+				{
+					xQueueSendToBack(uartQueueParam, uartBuffer2A, (TickType_t) 0);
+					vTaskResume(nextTaskHandleParam);
+					vTaskSuspend(NULL);
+				}
+				else if(ledParam == LED2)
+				{					
+					xQueueSendToBack(uartQueueParam, uartBuffer3A, (TickType_t) 0);
+					vTaskResume(nextTaskHandleParam);
+					vTaskSuspend(NULL);
+				}
+				else if(ledParam == LED3)
+				{
+					xQueueSendToBack(uartQueueParam, uartBuffer1A, (TickType_t) 0);
+					vTaskResume(nextTaskHandleParam);
+					vTaskSuspend(NULL);
+				}
 			}
-			else if(ledParam == LED2)
-			{
-				xQueueSendToBack(uartQueueParam, uartBuffer2A, (TickType_t) 0);
-			}
-			else if(ledParam == LED3)
-			{
-				xQueueSendToBack(uartQueueParam, uartBuffer3A, (TickType_t) 0);
-			}
-			vTaskResume(nextTaskHandleParam);
-			vTaskSuspend(NULL);
+
 		}
+
 		//delay for 100ms after all 3 switches
 		vTaskDelay(xDelay3);
 	}
 
 }
-		
+
+//		
 void taskHeartBeat (void * pvParamaters)		
 {
 /*
@@ -124,9 +158,7 @@ This will give you a visual clue that the FreeRTOS system is still running.
 	{
 		toggleLED(LED0);
 		vTaskDelay(xDelay2);
-
-	}
-		
+	}	
 }
 
 void taskLED(void * pvParameters)
@@ -154,9 +186,7 @@ The task should use your LED Driver from Lab 2.
 
 	while(true)
 	{
-		
 		toggleLED(ledNum);
-
 		
 		//this will go through the queue for each of the leds and either increase or decrease the delay
 
@@ -165,7 +195,7 @@ The task should use your LED Driver from Lab 2.
 			//if the queue receive of queue handle[i] goes into &getDelay and it's == to pbTrue, increase or decrease
 			if (xQueueReceive(ledQ, &getDelay, 0))
 			{
-
+				//if the task is to decrease the led, then decrease it for the current led
 				if(getDelay == DECREASE)
 				{
 					if (ledNum == LED1)
@@ -185,10 +215,8 @@ The task should use your LED Driver from Lab 2.
 					{
 						xDelay = 200;
 					}
-					
-					
 				}
-
+				//if the task is to increase the led, then increase it for the current led
 				else if (getDelay == INCREASE)
 				{
 					if (ledNum == LED1)
@@ -235,8 +263,8 @@ char tempUART[50];
 	{
 		if(uxQueueMessagesWaiting(uartTempQueue))
 		{
-			if(xQueueReceive(uartTempQueue, &tempUART, portMAX_DELAY) == pdTRUE)
-				UARTPutStr(EDBG_UART, tempUART, sizeof(tempUART));
+			xQueueReceive(uartTempQueue, &tempUART, portMAX_DELAY);
+			UARTPutStr(EDBG_UART, tempUART, sizeof(tempUART));
 		}
 	}
 }

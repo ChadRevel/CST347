@@ -86,8 +86,9 @@ int main (void)
 	initializeButtonDriver();
 	initUART(EDBG_UART);
 	
-	const char* startText = "This is Lab3\r\n";
-	UARTPutStr(EDBG_UART, startText, 0);
+	const char* startText = "\r\nThis is Lab3\r\n";
+	UARTPutStr(EDBG_UART, startText, sizeof(startText));
+	UARTPutStr(EDBG_UART, uartBuffer1A, sizeof(uartBuffer1A));
 	
 	
 	/*
@@ -142,7 +143,7 @@ int main (void)
 	//creating a task for the led0 to beat. Need to pass in a parameter of 0, to show that it's for led0
 	xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, 1, NULL);
 	
-	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, &uartHandle, 1, NULL);
+	xTaskCreate(taskUART, "Main UART Task", configMINIMAL_STACK_SIZE, uartQ, 1, &uartHandle);
 	
 	xTaskCreate(taskLED, "LED 1 Task", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, 1, &ledHandle[0]);
 	xTaskCreate(taskLED, "LED 2 Task", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, 1, &ledHandle[1]);

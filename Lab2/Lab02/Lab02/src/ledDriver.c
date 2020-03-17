@@ -109,7 +109,6 @@ If the led is off, then turn it on
 	if (readLED(uiLedNum) == 1)
 	{
 		return setLED(uiLedNum, 0);
-		
 	}
 	else
 		return setLED(uiLedNum, 1);

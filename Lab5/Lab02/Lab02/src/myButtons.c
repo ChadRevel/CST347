@@ -82,12 +82,12 @@ void button_handler(uint32_t id, uint32_t mask)
 	else if((PIN_PUSHBUTTON_2_ID == id) && (PIN_PUSHBUTTON_2_MASK == mask))
 	{
 		// Set a global variable to signify external switch 1
-		currButton = EXT_SW1;
+		currButton = SW1;
 	}
 	else if((PIN_PUSHBUTTON_3_ID == id) && (PIN_PUSHBUTTON_3_MASK == mask))
 	{
 		// Set a global variable to signify external switch 2
-		currButton = EXT_SW2;
+		currButton = SW2;
 	}
 	// Then wake up the button Task to process.
 	vTaskNotifyGiveFromISR(buttonHandle, &xHigherPriorityTaskWoken);

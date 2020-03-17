@@ -9,13 +9,16 @@
 
 // FreeRTOS Includes
 #include <FreeRTOS.h>
+#include "queue.h"
+#include "task.h"
 #include "ledDriver.h"
 #include "myButtons.h"
 #include "myTasks.h"
 #include "myDefines.h"
 
 
-// My Includes
+//the task handles for each of the leds
+TaskHandle_t LEDHandle[3] = {NULL, NULL, NULL};
 
 // Defines
 #if( BOARD == SAM4E_XPLAINED_PRO )       // Used to place the heap
@@ -38,6 +41,14 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName );
 // Used to place the heap
 extern char _estack;
 
+//create the 3 queue handles for controlling the queues
+QueueHandle_t ledQ[3] = {NULL, NULL, NULL};
+
+//make the structs within the structs
+struct ledStruct LED1Struct;
+struct ledStruct LED2Struct;
+struct ledStruct LED3Struct;
+
 
 int main (void)
 {
@@ -46,38 +57,32 @@ int main (void)
 	intitializeLEDDriver();
 	initializeButtonDriver();
 	
-	// Create a Task to Handle Button Press and Light LED
-	xTaskCreate(taskSystemControl,                       // Function Called by task
-	"My Button Task",                        // Task Name
-	configMINIMAL_STACK_SIZE,                // Task Stack Size
-	NULL,                                    // Any Parameters Passed to Task
-	1,                                       // Task Priority
-	NULL);                                   // Place to store Task Handle
-		
+
+	//create structs to be able to pass in the values around and not have everything set as a global variable
+	LED1Struct.ledQ = ledQ[0];
+	LED1Struct.ledNum = LED1;
+	LED2Struct.ledQ = ledQ[1];
+	LED2Struct.ledNum = LED2;
+	LED3Struct.ledQ = ledQ[2];
+	LED3Struct.ledNum = LED3;
+
+
+	
+	//creating a task for the led0 to beat. Need to pass in a parameter of 0, to show that it's for led0
+	xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, 1, NULL);
+	
+	//Create a Task to Handle Button Press and Light LED
+	//first is the main control task
+	xTaskCreate(taskSystemControl, "Main Control Task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	//next are the 3 led tasks
+	xTaskCreate(taskSystemControl, "Main Control Task for LED1", configMINIMAL_STACK_SIZE, (void *) &LED1Struct, 1, &LEDHandle[1]);
+	xTaskCreate(taskSystemControl, "Main Control Task for LED1", configMINIMAL_STACK_SIZE, (void *) &LED2Struct, 1, &LEDHandle[2]);
+	xTaskCreate(taskSystemControl, "Main Control Task for LED1", configMINIMAL_STACK_SIZE, (void *) &LED3Struct, 1, &LEDHandle[3]);	
 	// Start The Scheduler
 	vTaskStartScheduler();
 
 	while(true) {}
 }
-
-
-//need EXT_SW1, EXT_SW2, and SW0(on board switch).
-//will also need EXT_LED1, EXT_LED2, EXT_LED3
-//the ports need to all be priority 1
-
-/*
-pin on ext3 header	pin on processor  function
-5					PD28				EXT_LED1
-6					PD17				EXT_LED2
-9					PE1					EXT_LED3
-10					PD26				EXT_SW1
-15					PD30				EXT_SW2
-19					-					GND
-20					-					VCC
-*/
-
-
-//
 
 
 static void prvInitialiseHeap( )

@@ -24,7 +24,6 @@
 uint8_t initUART(Uart * pUart);
 void UARTPutC(Uart * pUart, char data);
 void UARTPutStr(Uart * pUart, const char * data, uint8_t len);
-//void UART0_Handler();
 
 
 

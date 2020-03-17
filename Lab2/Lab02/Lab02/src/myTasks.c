@@ -15,18 +15,16 @@ const TickType_t xDelay = 500 / portTICK_PERIOD_MS;
 const TickType_t xDelay2 = 1000 / portTICK_PERIOD_MS;
 const TickType_t xDelay3 = 100 / portTICK_PERIOD_MS;
 
-//the task handles for each of the leds
-TaskHandle_t LEDHandle0 = NULL;
-TaskHandle_t LEDHandle1 = NULL;
-TaskHandle_t LEDHandle2 = NULL;
-TaskHandle_t LEDHandle3 = NULL;
+extern TaskHandle_t LEDHandle[3];
 
 
 void taskSystemControl(void * pvParamaters)
 {
-//creating a task for the led0 to beat. Need to pass in a parameter of 0, to show that it's for led0
-xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 0, 1, &LEDHandle0);
-                                 
+    //set up the parameters
+	struct ledStruct * controlParams = (struct ledStruct *) pvParamaters;
+	QueueHandle_t ledQ = controlParams->ledQ;
+//	uint8_t ledNum = controlParams->ledNum;
+    uint32_t ledNum = (uint32_t) pvParamaters;                        
 
 
 	while (true)
@@ -35,20 +33,21 @@ xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *)
 		//it will create the task for each of the leds.
 		if (readButton(SW1) == 1)
 		{
-			if (LEDHandle1 == NULL)
+			if (ledQ = LED1)
 			{
-				//create a task for led to start beating
-				xTaskCreate(taskHeartBeat, "LED1 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 1, 1, &LEDHandle1);
+				//create a task for led 1 to turn on
+				toggleLED(LED1);
+				
 			}
-			else if (LEDHandle2 == NULL)
+			else if (ledQ = LED2)
 			{
-				//create a task for led to start beating
-				xTaskCreate(taskHeartBeat, "LED2 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 2, 1, &LEDHandle2);
+				//create a task for led 2 to turn on
+				toggleLED(LED2);
 			}
-			else if (LEDHandle3 == NULL)
+			else if (ledQ = LED3)
 			{
-				//create a task for led to start beating
-				xTaskCreate(taskHeartBeat, "LED3 Heart Beat", configMINIMAL_STACK_SIZE, (void *) 3, 1, &LEDHandle3);					
+				//create a task for led 3 to turn on
+				toggleLED(LED3);
 			}
 				
 		}
@@ -56,17 +55,17 @@ xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *)
 		//if sw 2 is pressed, then check each led from the highest led to the lowest, then delete the task
 		else if (readButton(SW2) == 1)
 		{
-			if (LEDHandle3 != NULL)
+			if (ledQ = LED1)
 			{
-				vTaskDelete(LEDHandle3);
+				vTaskDelete(LEDHandle[3]);
 			}
-			else if (LEDHandle2 != NULL)
+			else if (ledQ = LED2)
 			{
-				vTaskDelete(LEDHandle2);
+				vTaskDelete(LEDHandle[2]);
 			}
-			else if (LEDHandle1 != NULL)
+			else if (ledQ = LED3)
 			{
-				vTaskDelete(LEDHandle1);
+				vTaskDelete(LEDHandle[1]);
 			}
 
 		}
@@ -74,73 +73,81 @@ xTaskCreate(taskHeartBeat, "LED0 Heart Beat", configMINIMAL_STACK_SIZE, (void *)
 		//For the on board switch, if it's pressed, then suspend, or release the leds
 		else if (readButton(SW0) == 1)
 		{
-			if (LEDHandle1 != NULL)
-			{
-				vTaskSuspend(LEDHandle1);
-			}
-			else if (LEDHandle2 != NULL)
-			{
-				vTaskSuspend(LEDHandle2);
-			}
-			else if (LEDHandle3 != NULL)
-			{
-				vTaskSuspend(LEDHandle3);
-			}
-			else if (LEDHandle1 == NULL)
-			{
-				vTaskResume(LEDHandle1);
-			}
-			else if (LEDHandle2 == NULL)
-			{
-				vTaskResume(LEDHandle2);
-			}
-			else if (LEDHandle3 == NULL)
-			{
-				vTaskResume(LEDHandle3);
-			}		
+			//if (ledQ = LED1)
+			//{
+				//vTaskSuspend(LEDHandle[1]);
+			//}
+			//else if (ledQ = LED2)
+			//{
+				//vTaskSuspend(LEDHandle[2]);
+			//}
+			//else if (ledQ = LED3)
+			//{
+				//vTaskSuspend(LEDHandle[3]);
+			//}
+			//else if (ledQ = LED1)
+			//{
+				//vTaskResume(LEDHandle[1]);
+			//}
+			//else if (LEDHandle[2])
+			//{
+				//vTaskResume(LEDHandle[2]);
+			//}
+			//else if (LEDHandle[3])
+			//{
+				//vTaskResume(LEDHandle[3]);
+			//}		
 		
 		}
 		//delay for 100ms after all 3 switches
 		vTaskDelay(xDelay3);
 	}
+	
+
+		//this is the heartbeat for LED 0 to happen once every second
+		while (true)
+		{
+			//toggle the 3 leds to their respective delays
+			switch(ledNum)
+			{
+				case 1:
+				toggleLED(LED1);
+				break;
+				case 2:
+				toggleLED(LED2);
+				break;
+				case 3:
+				toggleLED(LED3);
+				break;
+				
+				default:
+				break;
+			}
+			//set the delay for the specific leds
+			if (ledNum == 0)
+			{
+				vTaskDelay(xDelay2);
+			}
+			else
+			{
+				vTaskDelay(xDelay);
+			}
+		}
 
 }
 		
 void taskHeartBeat (void * pvParamaters)		
 {
-	//set up the LedNumber for the parameters
-	uint32_t ledNum = (uint32_t) pvParamaters;
+	/*
+	The heartbeat task will be responsible for toggling the onboard LED every second.
+	This will give you a visual clue that the FreeRTOS system is still running.
+	*/
+
 	//this is the heartbeat for LED 0 to happen once every second
 	while (true)
 	{
-		//toggle the 4 leds to their respective delays
-		switch(ledNum)
-		{
-			case 0:
-				toggleLED(LED0);
-			break;
-			case 1:
-				toggleLED(LED1);
-			break;
-			case 2:
-				toggleLED(LED2);
-			break;
-			case 3:
-				toggleLED(LED3);
-			break;
-			
-			default:
-			break;	
-		}
-		//set the delay for the specific leds
-		if (ledNum == 0)
-		{
-			vTaskDelay(xDelay2);
-		}
-		else
-		{
-			vTaskDelay(xDelay);
-		}
+		toggleLED(LED0);
+		vTaskDelay(xDelay2);
 	}
 		
 }

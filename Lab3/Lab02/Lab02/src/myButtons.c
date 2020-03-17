@@ -14,15 +14,17 @@ void initializeButtonDriver(void)
 	//set the pins to input
 	ioport_set_pin_dir(EXT_SW1, IOPORT_DIR_INPUT);
 	ioport_set_pin_dir(EXT_SW2, IOPORT_DIR_INPUT);
-	ioport_set_pin_dir(SW0, IOPORT_DIR_INPUT);
+	ioport_set_pin_dir(BUTTON_0_PIN, IOPORT_DIR_INPUT);
 	
 	//sets the pin mode for the external switches 1 and 2 to turn on pullup resistors and debounce them
 	ioport_set_pin_mode(EXT_SW1, (IOPORT_MODE_PULLUP | IOPORT_MODE_DEBOUNCE));
 	ioport_set_pin_mode(EXT_SW2, (IOPORT_MODE_PULLUP | IOPORT_MODE_DEBOUNCE));
+	ioport_set_pin_mode(BUTTON_0_PIN, (IOPORT_MODE_PULLUP | IOPORT_MODE_DEBOUNCE));
 	
 	//sets the sensing mode for the external switches 1 and 2 for when they are pushed
 	ioport_set_pin_sense_mode(EXT_SW1, (IOPORT_SENSE_RISING));
 	ioport_set_pin_sense_mode(EXT_SW2, (IOPORT_SENSE_RISING));
+	ioport_set_pin_sense_mode(BUTTON_0_PIN, (IOPORT_SENSE_RISING));
 }
 
 uint8_t readButton(uint8_t uiButtonNum)
@@ -40,5 +42,4 @@ uint8_t readButton(uint8_t uiButtonNum)
 	//else it is the built in board button
 	else
 		return ioport_get_pin_level(BUTTON_0_PIN);
-
 }

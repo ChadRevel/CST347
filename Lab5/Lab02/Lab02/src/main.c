@@ -42,11 +42,9 @@ extern char _estack;
 
 //these are the lab 5 char *'s
 const char* uartSW0 = "\r\nHello FreeRTOS World\r\n";
-const char* uartEXT_SW1 = "\r\nCST 347 – RTOS\r\n";
-const char* uartEXT_SW2 = "\r\nLab 05 – Interrupts in FreeRTOS\r\n";
-
-//my name for lab 5
-const char* myName = "Chad\r\n";
+const char* uartEXT_SW1 = "\r\nCST 347 - RTOS\r\n";
+const char* uartEXT_SW2 = "\r\nLab 05 - Interrupts in FreeRTOS\r\n";
+const char* myName = "\r\nChad\r\n";
 
 
 //create the handles for the controlling the tasks
@@ -75,8 +73,8 @@ int main (void)
 	initializeButtonDriver();
 	initUART(EDBG_UART);
 	
-	const char* startText = "This is Lab5\r\n";
-	UARTPutStr(EDBG_UART, startText, 0);
+	const char* startText = "\r\nThis is Lab5\r\n";
+	UARTPutStr(EDBG_UART, startText, sizeof(startText));
 
 	//creating the queues for lab 5. the tx, rx, and led queues
 	//the tx queue with a size of 50 bytes, and & depth of 20 messages

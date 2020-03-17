@@ -32,7 +32,7 @@ portBASE_TYPE prvTaskStatsCommand(int8_t *pcWriteBuffer, size_t xWriteBufferLen,
 	//check if everything fits into the buffer
 	//if (sizeof(taskListHdr) > pcWriteBuffer)
 	//{
-	//
+		//
 	//}
 	//else
 	vTaskList(pcWriteBuffer);

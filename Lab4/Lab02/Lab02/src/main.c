@@ -96,8 +96,8 @@ int main (void)
 	initializeButtonDriver();
 	initUART(EDBG_UART);
 	
-	const char* startText = "This is Lab4\r\n";
-	UARTPutStr(EDBG_UART, startText, 0);
+	const char* startText = "\r\nThis is Lab4\r\n";
+	UARTPutStr(EDBG_UART, startText, sizeof(startText));
 
 	/*
 	The MainControl task will poll the status of all three switches (just as we did in lab 2). 
