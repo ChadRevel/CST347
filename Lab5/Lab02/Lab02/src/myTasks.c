@@ -18,108 +18,75 @@ const TickType_t xDelay3 = 100 / portTICK_PERIOD_MS;
 
 int SW_Debounce = 0;
 
-extern const char* uartBuffer1D;
-extern const char* uartBuffer2D;
-extern const char* uartBuffer3D;
-
-extern const char* uartBuffer1I;
-extern const char* uartBuffer2I;
-extern const char* uartBuffer3I; 
-
-extern const char* uartBuffer1A;
-extern const char* uartBuffer2A;
-extern const char* uartBuffer3A;
-
-extern const char* uartBufferMainStart;
-extern const char* uartBufferMainBlock;
-
-extern const char* uartBuffer1Start;
-extern const char* uartBuffer2Start;
-extern const char* uartBuffer3Start;
-
-extern const char* uartBuffer1Block;
-extern const char* uartBuffer2Block;
-extern const char* uartBuffer3Block;
-
+extern const char* uartSW0;
+extern const char* uartEXT_SW1;
+extern const char* uartEXT_SW2;
 extern const char* myName;
+
 uint8_t currLED = 0;
-//This is the main control for the task system
-//void taskSystemControl(void * pvParamaters)
-//{
-	//struct rxStruct * controlParams = (struct rxStruct *) pvParamaters;
-	//QueueHandle_t ledQueueParam[3];
-	//ledQueueParam[0] = controlParams->ledQ[0];
-	//ledQueueParam[1] = controlParams->ledQ[1];
-	//ledQueueParam[2] = controlParams->ledQ[2];
-	//QueueHandle_t uartQueueParam = controlParams->uartQ;
-               //
-	////declaration for either increasing or decreasing the speed			                     
-	//enum timeDelay incDec;
-//
-	//while (true)
-	//{
-		//
-		////first send out a message saying that the main control is starting
-		//xQueueSendToBack(uartQueueParam, uartBufferMainStart, (TickType_t) 0);	
-		//
-		//
-		//if (readButton(SW1) == 1)
-		//{
-			//if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			//else
-			//{
-				//SW_Debounce = 0;
-				////send led1 back to the end of the queue
-				//incDec = DECREASE;
-				//xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
-			//}
-		//}
-//
-		//else if (readButton(SW2) == 1)
-		//{
-			//if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			//else
-			//{
-				//SW_Debounce = 0;
-				//incDec = INCREASE;
-				////send led1 back to the end of the queue
-				//xQueueSendToBack(ledQueueParam[currLED-1], (void *) &incDec, (TickType_t) 10);
-			//}
-		//}
-//
-		////SW0
-		//else if (readButton(SW0) == 1)
-		//{
-			//if (SW_Debounce < maxSWDebounce) SW_Debounce++;
-			//else
-			//{
-				//SW_Debounce = 0;
-				//switch(currLED)
-				//{
-					//case LED1:
-						//currLED = LED2;
-						//break;
-					//case LED2:
-						//currLED = LED3;
-						//break;
-					//case LED3:
-						//currLED = LED1;
-						//break;
-					//default:
-						//break;
-				//}
-				//
-			//}
-		//}
-		////tell uart that the maincontrol is now blocking
-		//xQueueSendToBack(uartQueueParam, uartBufferMainBlock, (TickType_t) 0);
-		//
-		////delay for 100ms after all 3 switches
-		//vTaskDelay(xDelay3);
-	//}
-//
-//}
+extern int currButton;
+
+//this is the button task for sw0, ext_sw1, and ext_sw2
+void buttonTask(void * pvParamaters)
+{
 	
+	/*
+	Button Task – We will be adding a button task to the system defined in part 1.
+	The main purpose is to change from polling out buttons to interrupt processing.
+	The task must keep track of a global variable for the state of the three buttons.
+	It will block on an ulTaskNotifyTake( pdTRUE, portMAX_DELAY ); 
+	until the notification is received from the ISR.
+	It will then process the button state and do the following actions.
+	
+	SW0 – Send a message to the TX task as defined below
+	“\r\nHello FreeRTOS World\r\n”
+	EXT_SW1 – Send a message to the TX task as defined below
+	“\r\nCST 347 – RTOS\r\n”
+	EXT_SW2 – Send a message to the TX task as defined below
+
+	“\r\nLab 05 – Interrupts in FreeRTOS\r\n”
+	*/
+	struct rxStruct * controlParams = (struct rxStruct *) pvParamaters;
+	QueueHandle_t myTXQ = controlParams->theTXQ;
+		
+	while (true)
+	{	
+		if (readButton(SW1) == 1)
+		{
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
+			{
+				//xQueueSendToBack(myTXQ, &stringBuffer, 0);
+				SW_Debounce = 0;
+				xQueueSendToBack(myTXQ, uartEXT_SW1, (TickType_t) 0);
+			}
+		}
+		
+		else if (readButton(SW2) == 1)
+		{
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
+			{
+				SW_Debounce = 0;
+				xQueueSendToBack(myTXQ, uartEXT_SW2, (TickType_t) 0);
+			}
+		}
+		
+		//SW0
+		else if (readButton(SW0) == 1)
+		{			
+			if (SW_Debounce < maxSWDebounce) SW_Debounce++;
+			else
+			{
+				SW_Debounce = 0;
+				xQueueSendToBack(myTXQ, uartSW0, (TickType_t) 0);
+			}
+		}
+		
+	}
+	
+}
+
 //this is the heartbeat task to have led 0 blink		
 void taskHeartBeat (void * pvParamaters)		
 {

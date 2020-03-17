@@ -25,12 +25,13 @@ typedef struct rxStruct{QueueHandle_t theTXQ; QueueHandle_t theRXQ;}rxStruct;
 typedef enum timeDelay {INCREASE, DECREASE} timeDelay;
 
 
-void taskSystemControl(void * pvParamaters);
+//void taskSystemControl(void * pvParamaters);
 void taskHeartBeat (void * pvParamaters);
 void taskLED(void * pvParameters);
 void taskUART (void* pvParameters);
 void taskTX(void *pvParameters);
 void taskRX(void *pvParameters);
+void buttonTask(void * pvParamaters);
 
 
 
